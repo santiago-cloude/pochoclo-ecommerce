@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero ecommerce — reporte por cliente</title>
+<style>
+:root{
+  color-scheme: light;
+  --plane:#f9f9f7; --surface:#fcfcfb;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,0.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --up:#006300; --down:#d03b3b;
+  --demo-bg:#fdf6e3; --demo-ink:#7a5a00; --demo-line:#e8d9a8;
+  --acc:#2a78d6;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --plane:#0d0d0d; --surface:#1a1a19;
+    --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,0.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --up:#0ca30c; --down:#d03b3b;
+    --demo-bg:#2a2416; --demo-ink:#e0c877; --demo-line:#4a3f1e;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0d0d0d; --surface:#1a1a19;
+  --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,0.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --up:#0ca30c; --down:#d03b3b;
+  --demo-bg:#2a2416; --demo-ink:#e0c877; --demo-line:#4a3f1e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px; line-height:1.5;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+
+ 
+header{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:20px;font-weight:650;margin:0 0 2px}
+.sub{color:var(--ink2);font-size:13px}
+.spacer{flex:1}
+button.ghost{
+  background:var(--surface);border:1px solid var(--ring);color:var(--ink2);
+  border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;
+}
+button.ghost:hover{color:var(--ink)}
+
+.banner{
+  background:var(--demo-bg);border:1px solid var(--demo-line);color:var(--demo-ink);
+  border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;
+}
+.banner b{font-weight:650}
+
+ 
+.filters{
+  display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--ring);border-radius:12px;
+  padding:14px 16px;margin-bottom:8px;
+}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+select{
+  font:inherit;font-size:14px;padding:7px 10px;border-radius:8px;
+  border:1px solid var(--ring);background:var(--plane);color:var(--ink);min-width:150px;
+}
+ 
+.sticky{
+  position:sticky;top:0;z-index:20;background:var(--plane);
+  padding:10px 0 8px;margin:0 0 8px;
+}
+.brand{
+  display:flex;align-items:center;gap:16px;margin:0;
+  background:var(--surface);border:1px solid var(--ring);border-radius:12px;
+  padding:14px 18px;border-left:4px solid var(--acc);
+}
+.brand .logo{
+  height:44px;background:#fff;border-radius:8px;padding:6px 12px;
+  display:flex;align-items:center;box-shadow:0 0 0 1px rgba(11,11,11,.07) inset;
+}
+.brand .logo img{height:32px;display:block}
+   
+  .brand .logo.alto{height:56px;padding:4px 10px}
+  .brand .logo.alto img{height:48px}
+.brand .mono{
+  width:44px;height:44px;border-radius:10px;flex:none;
+  background:var(--acc);color:#fff;font-weight:700;font-size:16px;
+  display:flex;align-items:center;justify-content:center;letter-spacing:.02em;
+}
+.brand .bname{font-size:17px;font-weight:650;line-height:1.2}
+.brand .bsub{font-size:12.5px;color:var(--muted)}
+.brand .spacer{flex:1}
+.brand .nologo{font-size:12px;color:var(--muted);text-align:right;max-width:230px}
+
+.months{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0 22px}
+.mchip{
+  font:inherit;font-size:12.5px;padding:6px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--ring);background:var(--surface);color:var(--ink2);
+}
+.mchip[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.mchip:disabled{opacity:.32;cursor:not-allowed}
+.mchip.all{font-weight:600}
+
+ 
+.card{
+  background:var(--surface);border:1px solid var(--ring);border-radius:12px;
+  padding:18px 20px;margin-bottom:16px;
+}
+.card h2{font-size:14px;font-weight:650;margin:0 0 3px}
+.card .note{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+.demo-tag{
+  display:inline-block;vertical-align:2px;margin-left:8px;
+  background:var(--demo-bg);color:var(--demo-ink);border:1px solid var(--demo-line);
+  border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:650;
+  letter-spacing:.05em;text-transform:uppercase;
+}
+
+ 
+.hero{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+@media(max-width:1000px){.hero{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.hero{grid-template-columns:1fr}}
+.hero .card{margin:0;display:flex;flex-direction:column;justify-content:space-between}
+.klabel{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kbig{font-size:38px;font-weight:640;line-height:1.05;margin:8px 0 4px;letter-spacing:-.02em}
+.kbig.accent{color:var(--acc)}
+.deltas{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12.5px}
+.delta b{font-weight:650}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--muted)}
+
+ 
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:14px 16px}
+.tile .v{font-size:23px;font-weight:620;margin-top:5px;letter-spacing:-.01em}
+.tile .d{font-size:12px;margin-top:3px}
+
+ 
+.chart{width:100%;display:block;overflow:visible}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-bottom:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.tick{font-size:11px;fill:var(--muted)}
+.tick.num{font-variant-numeric:tabular-nums}
+.dlabel{font-size:11px;fill:var(--ink2);font-variant-numeric:tabular-nums}
+
+#tip{
+  position:fixed;pointer-events:none;opacity:0;transition:opacity .09s;
+  background:var(--surface);border:1px solid var(--ring);border-radius:9px;
+  padding:9px 12px;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.14);
+  z-index:50;max-width:250px;
+}
+#tip .tt{font-weight:650;margin-bottom:5px}
+#tip .tr{display:flex;justify-content:space-between;gap:16px;color:var(--ink2)}
+#tip .tr b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+ 
+.hbars{display:flex;flex-direction:column;gap:9px}
+.hb{display:grid;grid-template-columns:1fr 96px;gap:12px;align-items:center}
+.hb .nm{font-size:13px;color:var(--ink2);margin-bottom:4px}
+.hb .track{height:9px;border-radius:4px;background:var(--grid);overflow:hidden}
+.hb .fill{height:100%;border-radius:4px}
+.hb .val{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+ 
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--grid)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td{font-variant-numeric:tabular-nums}
+tbody tr:hover{background:var(--plane)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+  border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pill svg{width:11px;height:11px}
+.p-crit{background:rgba(208,59,59,.13);color:var(--crit)}
+.p-ser{background:rgba(236,131,90,.16);color:var(--serious)}
+.p-warn{background:rgba(250,178,25,.18);color:#8a6100}
+.p-good{background:rgba(12,163,12,.13);color:var(--good)}
+:root[data-theme="dark"] .p-warn{color:var(--warn)}
+@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])) .p-warn{color:var(--warn)}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+.two .card{margin:0}
+details{margin-top:6px}
+summary{cursor:pointer;color:var(--ink2);font-size:13px;padding:6px 0}
+.scroll{overflow-x:auto}
+.empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
+</style>
+</head>
+<body>
+<div id="tip" role="status" aria-live="polite"></div>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>Tablero ecommerce</h1>
+    <div class="sub" id="sub">Pochoclo Media</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="ghost" id="theme">Modo oscuro</button>
+</header>
+
+<div class="banner" id="aviso"></div>
+
+<div id="brand" class="sticky"></div>
+
+<div class="filters">
+  <div class="fld">
+    <label for="fc">Cliente</label>
+    <select id="fc"></select>
+  </div>
+  <div class="fld">
+    <label for="fa">Año</label>
+    <select id="fa"></select>
+  </div>
+</div>
+<div class="months" id="months" role="group" aria-label="Mes"></div>
+
+<div id="main"></div>
+
+<details>
+  <summary>Ver los datos en tabla</summary>
+  <div class="card scroll" style="margin-top:8px"><div id="tbl"></div></div>
+</details>
+
+</div>
+
+<script id="payload" type="application/json">{"real":{"Penguincoffe":[{"a":2025,"m":1,"v":53,"f":3160890,"t":59639.43396226415,"s":2212,"i":null,"tc":0.02396021699819168,"acad":{"v":0,"f":0},"prod":{"v":53,"f":3160890}},{"a":2025,"m":2,"v":45,"f":2595402,"t":57675.6,"s":1692,"i":null,"tc":0.026595744680851064,"acad":{"v":2,"f":360000},"prod":{"v":43,"f":2235402}},{"a":2025,"m":3,"v":57,"f":4404391,"t":77270.01754385965,"s":2543,"i":null,"tc":0.022414471097129376,"acad":{"v":4,"f":1260000},"prod":{"v":53,"f":3144391}},{"a":2025,"m":4,"v":58,"f":3721802,"t":64169,"s":3055,"i":null,"tc":0.018985270049099837,"acad":{"v":1,"f":230000},"prod":{"v":57,"f":3491802}},{"a":2025,"m":5,"v":67,"f":5349037.5,"t":79836.38059701493,"s":5378,"i":null,"tc":0.012458162885831164,"acad":{"v":6,"f":1173000},"prod":{"v":61,"f":4176037.5}},{"a":2025,"m":6,"v":73,"f":6983252,"t":95660.98630136986,"s":4383,"i":null,"tc":0.016655258955053615,"acad":{"v":7,"f":2047000},"prod":{"v":66,"f":4936252}},{"a":2025,"m":7,"v":74,"f":8967875.5,"t":121187.50675675676,"s":5554,"i":null,"tc":0.013323730644580483,"acad":{"v":16,"f":4818500},"prod":{"v":58,"f":4149375.5}},{"a":2025,"m":8,"v":70,"f":7026157,"t":100373.67142857143,"s":3965,"i":null,"tc":0.017654476670870115,"acad":{"v":10,"f":2737000},"prod":{"v":60,"f":4289157}},{"a":2025,"m":9,"v":66,"f":6111402,"t":92597,"s":3813,"i":null,"tc":0.01730920535011802,"acad":{"v":9,"f":2070000},"prod":{"v":57,"f":4041402}},{"a":2025,"m":10,"v":63,"f":8037676,"t":127582.15873015873,"s":3878,"i":null,"tc":0.016245487364620937,"acad":{"v":14,"f":3440000},"prod":{"v":49,"f":4597676}},{"a":2025,"m":11,"v":49,"f":4227447,"t":86274.42857142857,"s":4067,"i":null,"tc":0.012048192771084338,"acad":{"v":5,"f":1150000},"prod":{"v":44,"f":3077447}},{"a":2025,"m":12,"v":62,"f":6496240,"t":104778.06451612903,"s":3789,"i":null,"tc":0.016363156505674322,"acad":{"v":6,"f":1840000},"prod":{"v":56,"f":4656240}},{"a":2026,"m":1,"v":44,"f":4658797,"t":105881.75,"s":6545,"i":null,"tc":0.0067226890756302525,"acad":{"v":7,"f":2000000},"prod":{"v":37,"f":2658797}},{"a":2026,"m":2,"v":59,"f":5600526,"t":94924.16949152542,"s":6559,"i":null,"tc":0.008995273669766733,"acad":{"v":6,"f":1540000},"prod":{"v":53,"f":4060526}},{"a":2026,"m":3,"v":70,"f":7225660,"t":103223.71428571429,"s":3874,"i":null,"tc":0.018069179143004648,"acad":{"v":12,"f":2641650},"prod":{"v":58,"f":4584010}},{"a":2026,"m":4,"v":71,"f":6793450,"t":95682.39436619719,"s":3911,"i":null,"tc":0.018153924827409868,"acad":{"v":15,"f":3003500},"prod":{"v":56,"f":3789950}},{"a":2026,"m":5,"v":86,"f":9271280,"t":107805.58139534884,"s":4955,"i":null,"tc":0.017356205852674066,"acad":{"v":16,"f":3307500},"prod":{"v":70,"f":5963780}},{"a":2026,"m":6,"v":91,"f":10031144,"t":110232.35164835164,"s":4846,"i":null,"tc":0.018778373916632275,"acad":{"v":19,"f":4242000},"prod":{"v":72,"f":5789144}},{"a":2026,"m":7,"v":72,"f":8363403,"t":116158.375,"s":3611,"i":null,"tc":0.01993907504846303,"acad":{"v":18,"f":4181000},"prod":{"v":54,"f":4182403}},{"a":2026,"m":8,"v":63,"f":6766887.79,"t":107410.91730158731,"s":3161,"i":null,"tc":0.019930401771591267,"acad":{"v":14,"f":2779639.841986456},"prod":{"v":49,"f":3987247.948013544}}]},"demo":{"Penguincoffe":{"2025-01":{"ppt":1.68,"un":89,"nue":53,"rec":0,"top":[{"n":"Saborizado Vainilla natural","u":16,"f":596945,"st":null,"cob":null},{"n":"Perú - Cajamarca","u":14,"f":220500,"st":null,"cob":null},{"n":"Colombia- Antioquia 1kg","u":7,"f":413900,"st":null,"cob":null},{"n":"Brasil - Bourbon Minas Gerais","u":7,"f":215600,"st":null,"cob":null},{"n":"Black Label - Bolivia Anaeróbico","u":7,"f":167500,"st":null,"cob":null},{"n":"SABORIZADO VAINILLA NATURAL 1KG","u":6,"f":324900,"st":null,"cob":null},{"n":"Black Label - Colombia Orgánico","u":6,"f":142500,"st":null,"cob":null},{"n":"Colombia - Santander 1KG","u":5,"f":300500,"st":null,"cob":null},{"n":"Colombia - Santander","u":4,"f":230200,"st":null,"cob":null},{"n":"Black Label - Perú Paccha","u":4,"f":97500,"st":null,"cob":null},{"n":"Voltaic - Alto en Cafeína","u":4,"f":63545,"st":null,"cob":null},{"n":"Colombia- Antioquia","u":3,"f":170100,"st":null,"cob":null},{"n":"Brasil - Bourbon Minas Gerais 1KG","u":2,"f":108300,"st":null,"cob":null},{"n":"Café Frío Cold Brew - Pack x 12","u":1,"f":42900,"st":null,"cob":null},{"n":"Black Label - Colombia Monserrate","u":1,"f":22500,"st":null,"cob":null},{"n":"Alfajor Moka Blanco con Dulce de Leche x12","u":1,"f":15000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":1,"f":15000,"st":null,"cob":null}],"pagos":[{"n":"✅ Mercado Pago","p":0.9811},{"n":"Contra reembolso","p":0.0189}],"cuotas":[{"n":"56700 cuotas","p":0.1667},{"n":"60100 cuotas","p":0.119},{"n":"54150 cuotas","p":0.0952},{"n":"49200 cuotas","p":0.0476},{"n":"70650 cuotas","p":0.0476},{"n":"45000 cuotas","p":0.0238},{"n":"61545 cuotas","p":0.0238},{"n":"32015 cuotas","p":0.0238},{"n":"31400 cuotas","p":0.0238},{"n":"60000 cuotas","p":0.0238},{"n":"61500 cuotas","p":0.0238},{"n":"16400 cuotas","p":0.0238},{"n":"31500 cuotas","p":0.0238},{"n":"46030 cuotas","p":0.0238},{"n":"16666 cuotas","p":0.0238},{"n":"26500 cuotas","p":0.0238},{"n":"24590 cuotas","p":0.0238},{"n":"104500 cuotas","p":0.0238},{"n":"75500 cuotas","p":0.0238},{"n":"324900 cuotas","p":0.0238},{"n":"35500 cuotas","p":0.0238},{"n":"34500 cuotas","p":0.0238},{"n":"50000 cuotas","p":0.0238},{"n":"59000 cuotas","p":0.0238},{"n":"25000 cuotas","p":0.0238},{"n":"18000 cuotas","p":0.0238},{"n":"108300 cuotas","p":0.0238}]},"2025-02":{"ppt":1.76,"un":79,"nue":37,"rec":8,"top":[{"n":"Perú - Cajamarca","u":23,"f":379500,"st":null,"cob":null},{"n":"Brasil - Bourbon Minas Gerais","u":14,"f":238000,"st":null,"cob":null},{"n":"Saborizado Vainilla natural","u":11,"f":187000,"st":null,"cob":null},{"n":"Voltaic - Alto en Cafeína","u":7,"f":193300,"st":null,"cob":null},{"n":"SABORIZADO VAINILLA NATURAL 1KG","u":6,"f":324900,"st":null,"cob":null},{"n":"Colombia - Santander 1KG","u":5,"f":300500,"st":null,"cob":null},{"n":"Brasil - Bourbon Minas Gerais 1KG","u":5,"f":270750,"st":null,"cob":null},{"n":"Barista Inicial - Grupo","u":2,"f":360000,"st":null,"cob":null},{"n":"Calibración - 13/02, 09:00hs","u":2,"f":160000,"st":null,"cob":null},{"n":"Colombia- Antioquia 1kg","u":2,"f":120200,"st":null,"cob":null},{"n":"Colombia - Santander","u":2,"f":43000,"st":null,"cob":null}],"pagos":[{"n":"✅ Mercado Pago","p":1}],"cuotas":[{"n":"54150 cuotas","p":0.1944},{"n":"60100 cuotas","p":0.1111},{"n":"35000 cuotas","p":0.0833},{"n":"17000 cuotas","p":0.0833},{"n":"50500 cuotas","p":0.0556},{"n":"67000 cuotas","p":0.0556},{"n":"18000 cuotas","p":0.0556},{"n":"50000 cuotas","p":0.0556},{"n":"18500 cuotas","p":0.0278},{"n":"49500 cuotas","p":0.0278},{"n":"51000 cuotas","p":0.0278},{"n":"16666 cuotas","p":0.0278},{"n":"22004 cuotas","p":0.0278},{"n":"20033 cuotas","p":0.0278},{"n":"39500 cuotas","p":0.0278},{"n":"81600 cuotas","p":0.0278},{"n":"41252 cuotas","p":0.0278},{"n":"68000 cuotas","p":0.0278},{"n":"40458 cuotas","p":0.0278}]},"2025-03":{"ppt":2.19,"un":125,"nue":45,"rec":12,"top":[{"n":"Perú - Cajamarca","u":24,"f":407500,"st":null,"cob":null},{"n":"México - Chiapas","u":16,"f":336000,"st":null,"cob":null},{"n":"C","u":14,"f":292400,"st":null,"cob":null},{"n":"Brasil - Bourbon Minas Gerais","u":10,"f":180000,"st":null,"cob":null},{"n":"Saborizado Vainilla natural","u":10,"f":180000,"st":null,"cob":null},{"n":"SABORIZADO VAINILLA NATURAL 1KG","u":8,"f":476000,"st":null,"cob":null},{"n":"Colombia- Antioquia","u":8,"f":163400,"st":null,"cob":null},{"n":"Barista Inicial - Grupo 1: Inicia Miércoles 12/03, 17:00hs","u":7,"f":1260000,"st":null,"cob":null},{"n":"Brasil - Bourbon Minas Gerais 1KG","u":7,"f":416500,"st":null,"cob":null},{"n":"Voltaic - Alto en Cafeína","u":6,"f":98600,"st":null,"cob":null},{"n":"Brasil - Peaberry 1KG","u":4,"f":190400,"st":null,"cob":null},{"n":"Calibración - 28/03, 16:00hs","u":2,"f":160000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":2,"f":30000,"st":null,"cob":null},{"n":"Gift Card Talleres","u":1,"f":80000,"st":null,"cob":null},{"n":"Brasil - Catuai Rojo","u":1,"f":18000,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 12","u":1,"f":15000,"st":null,"cob":null},{"n":"Té en hebras Frutos Rojos - 50g.","u":1,"f":10350,"st":null,"cob":null},{"n":"Té en hebras la Vie en Rose - 50g.","u":1,"f":10350,"st":null,"cob":null},{"n":"Té en hebras Blanco Song - 50g.","u":1,"f":10350,"st":null,"cob":null},{"n":"Té en hebras Verde Sencha - 50g.","u":1,"f":10350,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.8421},{"n":"✅ Pagar en Mercado Pago","p":0.1579}],"cuotas":[{"n":"59500 cuotas","p":0.1628},{"n":"80000 cuotas","p":0.0698},{"n":"55000 cuotas","p":0.0698},{"n":"56000 cuotas","p":0.0698},{"n":"180000 cuotas","p":0.0465},{"n":"56500 cuotas","p":0.0465},{"n":"18000 cuotas","p":0.0233},{"n":"540000 cuotas","p":0.0233},{"n":"39403 cuotas","p":0.0233},{"n":"23102 cuotas","p":0.0233},{"n":"145850 cuotas","p":0.0233},{"n":"21000 cuotas","p":0.0233},{"n":"52850 cuotas","p":0.0233},{"n":"81000 cuotas","p":0.0233},{"n":"79000 cuotas","p":0.0233},{"n":"80500 cuotas","p":0.0233},{"n":"46752 cuotas","p":0.0233},{"n":"68000 cuotas","p":0.0233},{"n":"42000 cuotas","p":0.0233},{"n":"13166 cuotas","p":0.0233},{"n":"18500 cuotas","p":0.0233},{"n":"274300 cuotas","p":0.0233},{"n":"10350 cuotas","p":0.0233},{"n":"51000 cuotas","p":0.0233},{"n":"109500 cuotas","p":0.0233},{"n":"44500 cuotas","p":0.0233},{"n":"33000 cuotas","p":0.0233},{"n":"78000 cuotas","p":0.0233},{"n":"360000 cuotas","p":0.0233}]},"2025-04":{"ppt":1.93,"un":112,"nue":32,"rec":26,"top":[{"n":"Café Saborizado Vainilla natural","u":17,"f":331000,"st":null,"cob":null},{"n":"Café Perú - Cajamarca","u":16,"f":289500,"st":19,"cob":95},{"n":"Café Colombia- Antioquia","u":12,"f":270000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais","u":8,"f":149000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG","u":7,"f":433500,"st":null,"cob":null},{"n":"Café México - Chiapas","u":7,"f":147000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg","u":6,"f":382500,"st":99,"cob":371},{"n":"Café Black Label - Brasil Aleluia Frutal","u":6,"f":150000,"st":null,"cob":null},{"n":"Café Colombia - Santander","u":6,"f":141000,"st":4,"cob":17},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":5,"f":331500,"st":7,"cob":35},{"n":"Café Brasil - Peaberry","u":5,"f":102500,"st":null,"cob":null},{"n":"Café Black Label - Brasil Caracolitos frutos rojos","u":4,"f":111400,"st":null,"cob":null},{"n":"Café Black Label - Brasil Capoeira doble fermentación","u":3,"f":86400,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína","u":3,"f":56000,"st":null,"cob":null},{"n":"Gift Card Talleres","u":2,"f":176000,"st":null,"cob":null},{"n":"Curso Barista Inicial - Intensivo: 21, 22 y 23 de abril., 16:00hs","u":1,"f":230000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 30/04, 16:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 20/05, 16:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca","u":1,"f":65000,"st":null,"cob":null},{"n":"Café Frío Coffee Tonic - Pack x 12","u":1,"f":42900,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.7069},{"n":"✅ Pagar en Mercado Pago","p":0.2931}],"cuotas":[{"n":"59500 cuotas","p":0.16},{"n":"68000 cuotas","p":0.06},{"n":"60500 cuotas","p":0.04},{"n":"19500 cuotas","p":0.04},{"n":"136000 cuotas","p":0.04},{"n":"96000 cuotas","p":0.04},{"n":"69500 cuotas","p":0.04},{"n":"57500 cuotas","p":0.02},{"n":"52000 cuotas","p":0.02},{"n":"84500 cuotas","p":0.02},{"n":"64500 cuotas","p":0.02},{"n":"77500 cuotas","p":0.02},{"n":"12166 cuotas","p":0.02},{"n":"6500 cuotas","p":0.02},{"n":"8833 cuotas","p":0.02},{"n":"71500 cuotas","p":0.02},{"n":"16666 cuotas","p":0.02},{"n":"39500 cuotas","p":0.02},{"n":"28565 cuotas","p":0.02},{"n":"22666 cuotas","p":0.02},{"n":"72800 cuotas","p":0.02},{"n":"76666 cuotas","p":0.02},{"n":"42500 cuotas","p":0.02},{"n":"87300 cuotas","p":0.02},{"n":"30300 cuotas","p":0.02},{"n":"102000 cuotas","p":0.02},{"n":"37940 cuotas","p":0.02},{"n":"49300 cuotas","p":0.02},{"n":"82000 cuotas","p":0.02},{"n":"58500 cuotas","p":0.02},{"n":"25376 cuotas","p":0.02},{"n":"65500 cuotas","p":0.02},{"n":"40500 cuotas","p":0.02},{"n":"45000 cuotas","p":0.02},{"n":"65000 cuotas","p":0.02},{"n":"22000 cuotas","p":0.02}]},"2025-05":{"ppt":1.81,"un":121,"nue":45,"rec":22,"top":[{"n":"Café Saborizado Vainilla natural","u":17,"f":348500,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg","u":14,"f":948600,"st":99,"cob":371},{"n":"Café Colombia- Antioquia","u":11,"f":263375,"st":null,"cob":null},{"n":"Café Brasil - Peaberry","u":8,"f":164000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca","u":7,"f":455000,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir","u":7,"f":182000,"st":null,"cob":null},{"n":"Curso Barista Inicial","u":6,"f":1173000,"st":5,"cob":21},{"n":"Café Black Label - Brasil Capoeira doble fermentación","u":6,"f":172800,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":5,"f":340000,"st":7,"cob":35},{"n":"Café Brasil - Peaberry 1KG","u":5,"f":333200,"st":null,"cob":null},{"n":"Café Black Label - Brasil Caracolitos frutos rojos","u":4,"f":115200,"st":null,"cob":null},{"n":"Café Colombia - Santander","u":4,"f":98000,"st":4,"cob":17},{"n":"Café Brasil - Bourbon Minas Gerais","u":4,"f":82000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":3,"f":42000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":2,"f":130000,"st":null,"cob":null},{"n":"Café Black Label - Brasil Aleluia Frutal","u":2,"f":57600,"st":null,"cob":null},{"n":"Café México - Chiapas","u":2,"f":52000,"st":null,"cob":null},{"n":"Alfajor Moka Blanco con Dulce de Leche x12","u":2,"f":29250,"st":null,"cob":null},{"n":"Té en hebras Frutos Rojos - 50g.","u":2,"f":20182.5,"st":null,"cob":null},{"n":"Té en hebras Earl Grey - 50g.","u":2,"f":19665,"st":null,"cob":null},{"n":"Té en hebras India Chai - 50g.","u":2,"f":19665,"st":null,"cob":null},{"n":"Taller - Arte Latte - 03/06, 16:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":1,"f":75900,"st":null,"cob":null},{"n":"Café Colombia - Santander 1KG","u":1,"f":75900,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína","u":1,"f":19500,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.6716},{"n":"✅ Pagar en Mercado Pago","p":0.3284}],"cuotas":[{"n":"68000 cuotas","p":0.1731},{"n":"65000 cuotas","p":0.0962},{"n":"45000 cuotas","p":0.0962},{"n":"76666 cuotas","p":0.0769},{"n":"42500 cuotas","p":0.0577},{"n":"50500 cuotas","p":0.0577},{"n":"15000 cuotas","p":0.0385},{"n":"20500 cuotas","p":0.0192},{"n":"51122 cuotas","p":0.0192},{"n":"49000 cuotas","p":0.0192},{"n":"137450 cuotas","p":0.0192},{"n":"18450 cuotas","p":0.0192},{"n":"137500 cuotas","p":0.0192},{"n":"19500 cuotas","p":0.0192},{"n":"49300 cuotas","p":0.0192},{"n":"78850 cuotas","p":0.0192},{"n":"68300 cuotas","p":0.0192},{"n":"96000 cuotas","p":0.0192},{"n":"33100 cuotas","p":0.0192},{"n":"230000 cuotas","p":0.0192},{"n":"23000 cuotas","p":0.0192},{"n":"27492 cuotas","p":0.0192},{"n":"201637 cuotas","p":0.0192},{"n":"75900 cuotas","p":0.0192},{"n":"133000 cuotas","p":0.0192},{"n":"72500 cuotas","p":0.0192},{"n":"22000 cuotas","p":0.0192},{"n":"136000 cuotas","p":0.0192}]},"2025-06":{"ppt":1.93,"un":141,"nue":41,"rec":32,"top":[{"n":"Café Saborizado Vainilla natural","u":24,"f":490975,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg","u":11,"f":748000,"st":99,"cob":371},{"n":"Café Bolivia - Finca El Porvenir","u":11,"f":286000,"st":null,"cob":null},{"n":"Curso Barista Inicial","u":9,"f":2047000,"st":5,"cob":21},{"n":"Café Honduras Cantarranas","u":8,"f":196000,"st":9,"cob":68},{"n":"Café Brasil - Peaberry","u":8,"f":164000,"st":null,"cob":null},{"n":"Café Black Label - Etiopía Limmu","u":7,"f":201600,"st":null,"cob":null},{"n":"Café Colombia - Santander","u":7,"f":171500,"st":4,"cob":17},{"n":"Café Voltaic - Alto en Cafeína","u":7,"f":136500,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG","u":6,"f":408000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":5,"f":379500,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":5,"f":325000,"st":15,"cob":113},{"n":"Café Brasil - Bourbon Minas Gerais","u":5,"f":101475,"st":null,"cob":null},{"n":"Café Perú - Cajamarca","u":5,"f":97500,"st":19,"cob":95},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":4,"f":272000,"st":7,"cob":35},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":4,"f":60000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":3,"f":195000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 17/06, 16:00hs","u":2,"f":192000,"st":null,"cob":null},{"n":"Café México - Chiapas","u":2,"f":52000,"st":null,"cob":null},{"n":"Taller - Calibración - 07/06, 15:00 hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Calibración - 25/06, 10:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 10/06, 16:00hs","u":1,"f":91200,"st":null,"cob":null},{"n":"Taller - Arte Latte - 24/06, 16:00hs","u":1,"f":91200,"st":null,"cob":null},{"n":"Café Colombia- Antioquia","u":1,"f":24500,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 12","u":1,"f":15000,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.726},{"n":"✅ Pagar en Mercado Pago","p":0.274}],"cuotas":[{"n":"68000 cuotas","p":0.1228},{"n":"76666 cuotas","p":0.0702},{"n":"65000 cuotas","p":0.0702},{"n":"96000 cuotas","p":0.0351},{"n":"81000 cuotas","p":0.0351},{"n":"75900 cuotas","p":0.0351},{"n":"82000 cuotas","p":0.0351},{"n":"49300 cuotas","p":0.0351},{"n":"19500 cuotas","p":0.0175},{"n":"95500 cuotas","p":0.0175},{"n":"109000 cuotas","p":0.0175},{"n":"36872 cuotas","p":0.0175},{"n":"90950 cuotas","p":0.0175},{"n":"118500 cuotas","p":0.0175},{"n":"71000 cuotas","p":0.0175},{"n":"145666 cuotas","p":0.0175},{"n":"40450 cuotas","p":0.0175},{"n":"22666 cuotas","p":0.0175},{"n":"192000 cuotas","p":0.0175},{"n":"151750 cuotas","p":0.0175},{"n":"45000 cuotas","p":0.0175},{"n":"76500 cuotas","p":0.0175},{"n":"45850 cuotas","p":0.0175},{"n":"42500 cuotas","p":0.0175},{"n":"204000 cuotas","p":0.0175},{"n":"107500 cuotas","p":0.0175},{"n":"64500 cuotas","p":0.0175},{"n":"91166 cuotas","p":0.0175},{"n":"21000 cuotas","p":0.0175},{"n":"49000 cuotas","p":0.0175},{"n":"69500 cuotas","p":0.0175},{"n":"68500 cuotas","p":0.0175},{"n":"10100 cuotas","p":0.0175},{"n":"30300 cuotas","p":0.0175},{"n":"19200 cuotas","p":0.0175},{"n":"83000 cuotas","p":0.0175},{"n":"137500 cuotas","p":0.0175},{"n":"22000 cuotas","p":0.0175},{"n":"86500 cuotas","p":0.0175},{"n":"44000 cuotas","p":0.0175}]},"2025-07":{"ppt":1.81,"un":134,"nue":49,"rec":25,"top":[{"n":"Curso Barista Inicial","u":21,"f":4818500,"st":5,"cob":21},{"n":"Café Honduras Cantarranas","u":14,"f":343000,"st":9,"cob":68},{"n":"Café Black Label - Etiopía Limmu","u":13,"f":370080,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural","u":13,"f":266500,"st":null,"cob":null},{"n":"Café Perú - Cajamarca","u":13,"f":253500,"st":19,"cob":95},{"n":"Café Saborizado Vainilla natural 1kg","u":10,"f":680000,"st":99,"cob":371},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":9,"f":581750,"st":15,"cob":113},{"n":"Café México - Chiapas","u":9,"f":234000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG","u":7,"f":469200,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":6,"f":408000,"st":7,"cob":35},{"n":"Café Brasil - Peaberry","u":5,"f":102500,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais","u":4,"f":82000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":2,"f":130000,"st":null,"cob":null},{"n":"Café Colombia - Santander","u":2,"f":49000,"st":4,"cob":17},{"n":"Té en hebras Frutos Rojos - 50g.","u":2,"f":19665,"st":null,"cob":null},{"n":"Taller - Filtrado - 14/08, 10:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 12","u":1,"f":15000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":1,"f":15000,"st":null,"cob":null},{"n":"Té en hebras Verde Sencha - 50g.","u":1,"f":9832.5,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.6757},{"n":"✅ Pagar en Mercado Pago","p":0.3243}],"cuotas":[{"n":"68000 cuotas","p":0.1786},{"n":"76666 cuotas","p":0.1429},{"n":"65000 cuotas","p":0.0893},{"n":"64500 cuotas","p":0.0536},{"n":"45000 cuotas","p":0.0357},{"n":"153333 cuotas","p":0.0357},{"n":"22666 cuotas","p":0.0357},{"n":"30300 cuotas","p":0.0179},{"n":"59000 cuotas","p":0.0179},{"n":"35724 cuotas","p":0.0179},{"n":"48300 cuotas","p":0.0179},{"n":"136000 cuotas","p":0.0179},{"n":"119300 cuotas","p":0.0179},{"n":"96000 cuotas","p":0.0179},{"n":"42500 cuotas","p":0.0179},{"n":"306666 cuotas","p":0.0179},{"n":"230000 cuotas","p":0.0179},{"n":"213417 cuotas","p":0.0179},{"n":"85500 cuotas","p":0.0179},{"n":"70000 cuotas","p":0.0179},{"n":"66000 cuotas","p":0.0179},{"n":"69500 cuotas","p":0.0179},{"n":"61500 cuotas","p":0.0179},{"n":"120000 cuotas","p":0.0179},{"n":"49300 cuotas","p":0.0179},{"n":"96800 cuotas","p":0.0179},{"n":"21000 cuotas","p":0.0179},{"n":"82000 cuotas","p":0.0179},{"n":"15166 cuotas","p":0.0179},{"n":"183300 cuotas","p":0.0179},{"n":"88339 cuotas","p":0.0179}]},"2025-08":{"ppt":1.7,"un":119,"nue":51,"rec":19,"top":[{"n":"Perú Chirinos Finca Cajamarca 1KG","u":19,"f":1235000,"st":15,"cob":113},{"n":"Café Saborizado Vainilla natural","u":18,"f":369000,"st":null,"cob":null},{"n":"Curso Barista Inicial","u":12,"f":2737000,"st":5,"cob":21},{"n":"Café Saborizado Vainilla natural 1kg","u":9,"f":612000,"st":99,"cob":371},{"n":"Café Perú - Cajamarca","u":7,"f":136500,"st":19,"cob":95},{"n":"Café México - Chiapas","u":6,"f":156000,"st":null,"cob":null},{"n":"Aeropress Championship 2025 (250 GRAMOS)","u":6,"f":150000,"st":null,"cob":null},{"n":"Café Black Label - Etiopía Limmu","u":4,"f":115200,"st":null,"cob":null},{"n":"Café Colombia - Santander","u":4,"f":98000,"st":4,"cob":17},{"n":"Café Colombia- Antioquia","u":4,"f":98000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry","u":4,"f":82000,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína","u":4,"f":78000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":3,"f":191750,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":3,"f":73500,"st":9,"cob":68},{"n":"Café Colombia- Antioquia 1kg","u":2,"f":151800,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais","u":2,"f":41000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":2,"f":30000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 23/08, 10:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Filtrado - 12/09, 16:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 15/09, 10:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Calibración - 17/10, 15:00 hs","u":1,"f":91200,"st":null,"cob":null},{"n":"Café Colombia - Santander 1KG","u":1,"f":75900,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":1,"f":68000,"st":7,"cob":35},{"n":"Café Brasil - Peaberry 1KG","u":1,"f":68000,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 12","u":1,"f":15000,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.6571},{"n":"✅ Pagar en Mercado Pago","p":0.3429}],"cuotas":[{"n":"65000 cuotas","p":0.1636},{"n":"68000 cuotas","p":0.1455},{"n":"76666 cuotas","p":0.0909},{"n":"153333 cuotas","p":0.0364},{"n":"96000 cuotas","p":0.0364},{"n":"45000 cuotas","p":0.0182},{"n":"40500 cuotas","p":0.0182},{"n":"61750 cuotas","p":0.0182},{"n":"28800 cuotas","p":0.0182},{"n":"89500 cuotas","p":0.0182},{"n":"56000 cuotas","p":0.0182},{"n":"22000 cuotas","p":0.0182},{"n":"61500 cuotas","p":0.0182},{"n":"159000 cuotas","p":0.0182},{"n":"230000 cuotas","p":0.0182},{"n":"41500 cuotas","p":0.0182},{"n":"218500 cuotas","p":0.0182},{"n":"31500 cuotas","p":0.0182},{"n":"53800 cuotas","p":0.0182},{"n":"28543 cuotas","p":0.0182},{"n":"40140 cuotas","p":0.0182},{"n":"45500 cuotas","p":0.0182},{"n":"94500 cuotas","p":0.0182},{"n":"64500 cuotas","p":0.0182},{"n":"8833 cuotas","p":0.0182},{"n":"27387 cuotas","p":0.0182},{"n":"130000 cuotas","p":0.0182},{"n":"45881 cuotas","p":0.0182},{"n":"27802 cuotas","p":0.0182},{"n":"46500 cuotas","p":0.0182},{"n":"94377 cuotas","p":0.0182},{"n":"75900 cuotas","p":0.0182},{"n":"61700 cuotas","p":0.0182},{"n":"70000 cuotas","p":0.0182}]},"2025-09":{"ppt":1.61,"un":106,"nue":43,"rec":23,"top":[{"n":"Café Perú - Cajamarca","u":17,"f":337475,"st":19,"cob":95},{"n":"Café Saborizado Vainilla natural 1kg","u":11,"f":755500,"st":99,"cob":371},{"n":"Curso Barista Inicial","u":9,"f":2070000,"st":5,"cob":21},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":6,"f":386750,"st":15,"cob":113},{"n":"Café Black Label - Etiopía Limmu","u":6,"f":172800,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":6,"f":150600,"st":9,"cob":68},{"n":"Café Colombia- Antioquia","u":6,"f":147000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural","u":6,"f":120000,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína","u":5,"f":100500,"st":null,"cob":null},{"n":"Café Brasil - Peaberry","u":5,"f":98425,"st":null,"cob":null},{"n":"Taller - Filtrado - 02/10, 10:00hs","u":4,"f":384000,"st":null,"cob":null},{"n":"Café Colombia - Santander","u":4,"f":98000,"st":4,"cob":17},{"n":"Café Colombia- Antioquia 1kg","u":3,"f":223905,"st":null,"cob":null},{"n":"Aeropress Championship 2025 (250 GRAMOS)","u":3,"f":70000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 15/09, 10:00hs","u":2,"f":206000,"st":null,"cob":null},{"n":"Taller - Calibración - 26/09, 16:00hs","u":2,"f":192000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":2,"f":151000,"st":7,"cob":35},{"n":"Taller - Arte Latte - 18/10, 10:00hs","u":1,"f":110000,"st":null,"cob":null},{"n":"Café Colombia - Santander 1KG","u":1,"f":75900,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":1,"f":71990,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG","u":1,"f":68000,"st":null,"cob":null},{"n":"Café México - Chiapas","u":1,"f":26000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais","u":1,"f":21500,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 12","u":1,"f":15000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":1,"f":15000,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.6061},{"n":"✅ Pagar en Mercado Pago","p":0.3939}],"cuotas":[{"n":"65000 cuotas","p":0.1042},{"n":"76666 cuotas","p":0.0833},{"n":"68000 cuotas","p":0.0625},{"n":"75900 cuotas","p":0.0625},{"n":"53300 cuotas","p":0.0417},{"n":"41465 cuotas","p":0.0417},{"n":"61500 cuotas","p":0.0417},{"n":"75500 cuotas","p":0.0417},{"n":"24500 cuotas","p":0.0208},{"n":"16726 cuotas","p":0.0208},{"n":"60500 cuotas","p":0.0208},{"n":"125600 cuotas","p":0.0208},{"n":"49000 cuotas","p":0.0208},{"n":"408000 cuotas","p":0.0208},{"n":"73500 cuotas","p":0.0208},{"n":"133855 cuotas","p":0.0208},{"n":"15000 cuotas","p":0.0208},{"n":"30000 cuotas","p":0.0208},{"n":"65500 cuotas","p":0.0208},{"n":"45500 cuotas","p":0.0208},{"n":"50500 cuotas","p":0.0208},{"n":"96000 cuotas","p":0.0208},{"n":"23000 cuotas","p":0.0208},{"n":"22000 cuotas","p":0.0208},{"n":"230000 cuotas","p":0.0208},{"n":"110000 cuotas","p":0.0208},{"n":"41400 cuotas","p":0.0208},{"n":"54500 cuotas","p":0.0208},{"n":"25166 cuotas","p":0.0208},{"n":"46200 cuotas","p":0.0208},{"n":"71990 cuotas","p":0.0208},{"n":"30300 cuotas","p":0.0208},{"n":"46500 cuotas","p":0.0208}]},"2025-10":{"ppt":1.83,"un":115,"nue":34,"rec":29,"top":[{"n":"Café Perú - Cajamarca","u":13,"f":266500,"st":19,"cob":95},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":12,"f":996200,"st":15,"cob":113},{"n":"Curso Barista Inicial","u":11,"f":2530000,"st":5,"cob":21},{"n":"Café Bolivia - Finca El Porvenir","u":11,"f":302500,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":8,"f":205600,"st":9,"cob":68},{"n":"Café Saborizado Vainilla natural 1kg","u":7,"f":528500,"st":99,"cob":371},{"n":"Café México - Chiapas","u":7,"f":192500,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":6,"f":453000,"st":7,"cob":35},{"n":"Café Brasil - Peaberry 1KG","u":6,"f":445450,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural","u":6,"f":129000,"st":null,"cob":null},{"n":"Aeropress Championship 2025 (250 GRAMOS)","u":5,"f":125000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais","u":5,"f":107500,"st":null,"cob":null},{"n":"Café Black Label - Etiopía Limmu","u":4,"f":115200,"st":null,"cob":null},{"n":"Café Colombia - Santander 1KG","u":3,"f":253500,"st":null,"cob":null},{"n":"Curso Barista inicial + Taller de despacho - Semanal lunes: Inicia el","u":2,"f":620000,"st":null,"cob":null},{"n":"Workshop de latte art PRO - Figuras avanzadas - Inicio: 10, 12, 14, 17 y 19 de Noviembre, 10:00hs","u":1,"f":180000,"st":null,"cob":null},{"n":"Gift Card Taller de Arte Latte","u":1,"f":110000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 18/10, 10:00hs","u":1,"f":110000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 13/12, 10:00hs","u":1,"f":110000,"st":null,"cob":null},{"n":"Gift Card Talleres","u":1,"f":96000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":1,"f":84500,"st":null,"cob":null},{"n":"Café Brasil - Peaberry","u":1,"f":21500,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 12","u":1,"f":17000,"st":null,"cob":null},{"n":"Alfajor Moka Mix con Dulce de Leche x12","u":1,"f":17000,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.619},{"n":"✅ Pagar en Mercado Pago","p":0.381}],"cuotas":[{"n":"75500 cuotas","p":0.1538},{"n":"76666 cuotas","p":0.0962},{"n":"84500 cuotas","p":0.0769},{"n":"110000 cuotas","p":0.0577},{"n":"230000 cuotas","p":0.0385},{"n":"46200 cuotas","p":0.0385},{"n":"151000 cuotas","p":0.0192},{"n":"67300 cuotas","p":0.0192},{"n":"103333 cuotas","p":0.0192},{"n":"96000 cuotas","p":0.0192},{"n":"169000 cuotas","p":0.0192},{"n":"80700 cuotas","p":0.0192},{"n":"310000 cuotas","p":0.0192},{"n":"69500 cuotas","p":0.0192},{"n":"64500 cuotas","p":0.0192},{"n":"132000 cuotas","p":0.0192},{"n":"53800 cuotas","p":0.0192},{"n":"169500 cuotas","p":0.0192},{"n":"73000 cuotas","p":0.0192},{"n":"104500 cuotas","p":0.0192},{"n":"61500 cuotas","p":0.0192},{"n":"422500 cuotas","p":0.0192},{"n":"143450 cuotas","p":0.0192},{"n":"82500 cuotas","p":0.0192},{"n":"153333 cuotas","p":0.0192},{"n":"23000 cuotas","p":0.0192},{"n":"48000 cuotas","p":0.0192},{"n":"196500 cuotas","p":0.0192},{"n":"51400 cuotas","p":0.0192},{"n":"180000 cuotas","p":0.0192},{"n":"89500 cuotas","p":0.0192},{"n":"82000 cuotas","p":0.0192},{"n":"100733 cuotas","p":0.0192},{"n":"49000 cuotas","p":0.0192}]},"2025-11":{"ppt":1.49,"un":73,"nue":31,"rec":18,"top":[{"n":"Café Saborizado Vainilla natural","u":9,"f":193500,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":7,"f":529200,"st":15,"cob":113},{"n":"Café Saborizado Vainilla natural 1kg","u":7,"f":528500,"st":99,"cob":371},{"n":"Café Brasil - Bourbon Minas Gerais","u":7,"f":150500,"st":null,"cob":null},{"n":"Café Perú - Cajamarca","u":7,"f":143500,"st":19,"cob":95},{"n":"Curso Barista Inicial","u":5,"f":1150000,"st":5,"cob":21},{"n":"Coffee Hunters - Colombia Geisha Rioblanco White Honey","u":5,"f":140000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":5,"f":128500,"st":9,"cob":68},{"n":"Coffee Hunters BOX - Tríptico de proceso. Monovarietales Colombia","u":4,"f":180000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 25/11, 16:00hs","u":3,"f":330000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 13/12, 10:00hs","u":3,"f":330000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Typica Colaborativa Natural","u":3,"f":84000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Chiroso Landrace Doble fermentación","u":3,"f":84000,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir","u":3,"f":82500,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":2,"f":151000,"st":7,"cob":35}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.6327},{"n":"✅ Pagar en Mercado Pago","p":0.3673}],"cuotas":[{"n":"75500 cuotas","p":0.1282},{"n":"110000 cuotas","p":0.1026},{"n":"75600 cuotas","p":0.0769},{"n":"76666 cuotas","p":0.0769},{"n":"45000 cuotas","p":0.0769},{"n":"56000 cuotas","p":0.0513},{"n":"68172 cuotas","p":0.0256},{"n":"23000 cuotas","p":0.0256},{"n":"101200 cuotas","p":0.0256},{"n":"22000 cuotas","p":0.0256},{"n":"22137 cuotas","p":0.0256},{"n":"47530 cuotas","p":0.0256},{"n":"151100 cuotas","p":0.0256},{"n":"76500 cuotas","p":0.0256},{"n":"115000 cuotas","p":0.0256},{"n":"48000 cuotas","p":0.0256},{"n":"30217 cuotas","p":0.0256},{"n":"43500 cuotas","p":0.0256},{"n":"18666 cuotas","p":0.0256},{"n":"96100 cuotas","p":0.0256},{"n":"29500 cuotas","p":0.0256},{"n":"51400 cuotas","p":0.0256},{"n":"63500 cuotas","p":0.0256},{"n":"16691 cuotas","p":0.0256},{"n":"37750 cuotas","p":0.0256}]},"2025-12":{"ppt":1.9,"un":118,"nue":27,"rec":35,"top":[{"n":"Café Perú - Cajamarca","u":15,"f":307500,"st":19,"cob":95},{"n":"Café Saborizado Vainilla natural","u":14,"f":299925,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg","u":10,"f":755000,"st":99,"cob":371},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":9,"f":680400,"st":15,"cob":113},{"n":"Curso Barista Inicial","u":8,"f":1840000,"st":5,"cob":21},{"n":"Café Honduras - Cantarranas 1KG","u":8,"f":636000,"st":7,"cob":30},{"n":"Café Brasil - Bourbon Minas Gerais","u":8,"f":150500,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Chiroso Landrace Doble fermentación","u":6,"f":168000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha Rioblanco White Honey","u":6,"f":168000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":5,"f":128500,"st":9,"cob":68},{"n":"Café Voltaic - Alto en Cafeína","u":5,"f":102500,"st":null,"cob":null},{"n":"Coffee Hunters BOX - Tríptico de proceso. Monovarietales Colombia","u":4,"f":180000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Typica Colaborativa Natural","u":4,"f":112000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry","u":4,"f":84925,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir","u":3,"f":82500,"st":null,"cob":null},{"n":"Taller - Calibración - 22/01, 10:00hs","u":2,"f":192000,"st":null,"cob":null},{"n":"Café Bolivia – Finca El Porvenir","u":2,"f":179000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG","u":2,"f":151000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 13/12, 10:00hs","u":1,"f":110000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG","u":1,"f":75500,"st":7,"cob":35},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":1,"f":71990,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.629},{"n":"✅ Pagar en Mercado Pago","p":0.371}],"cuotas":[{"n":"75500 cuotas","p":0.098},{"n":"79500 cuotas","p":0.0784},{"n":"44500 cuotas","p":0.0588},{"n":"75600 cuotas","p":0.0588},{"n":"76666 cuotas","p":0.0392},{"n":"45000 cuotas","p":0.0392},{"n":"152500 cuotas","p":0.0392},{"n":"49500 cuotas","p":0.0392},{"n":"53200 cuotas","p":0.0196},{"n":"123000 cuotas","p":0.0196},{"n":"43500 cuotas","p":0.0196},{"n":"110000 cuotas","p":0.0196},{"n":"98000 cuotas","p":0.0196},{"n":"89500 cuotas","p":0.0196},{"n":"114000 cuotas","p":0.0196},{"n":"58406 cuotas","p":0.0196},{"n":"61500 cuotas","p":0.0196},{"n":"24733 cuotas","p":0.0196},{"n":"230000 cuotas","p":0.0196},{"n":"16166 cuotas","p":0.0196},{"n":"22000 cuotas","p":0.0196},{"n":"71990 cuotas","p":0.0196},{"n":"23000 cuotas","p":0.0196},{"n":"86000 cuotas","p":0.0196},{"n":"76500 cuotas","p":0.0196},{"n":"103100 cuotas","p":0.0196},{"n":"56000 cuotas","p":0.0196},{"n":"63500 cuotas","p":0.0196},{"n":"42350 cuotas","p":0.0196},{"n":"69000 cuotas","p":0.0196},{"n":"460000 cuotas","p":0.0196},{"n":"176800 cuotas","p":0.0196},{"n":"42500 cuotas","p":0.0196},{"n":"21353 cuotas","p":0.0196},{"n":"87000 cuotas","p":0.0196},{"n":"106733 cuotas","p":0.0196}]},"2026-01":{"ppt":1.5,"un":66,"nue":26,"rec":18,"top":[{"n":"Café Saborizado Vainilla natural 1kg","u":7,"f":528500,"st":99,"cob":371},{"n":"Curso Barista Inicial","u":6,"f":1380000,"st":5,"cob":21},{"n":"Café Saborizado Vainilla natural","u":6,"f":129000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry","u":5,"f":105350,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Typica Colaborativa Natural","u":4,"f":112000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha Rioblanco White Honey","u":4,"f":112000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":4,"f":102800,"st":9,"cob":68},{"n":"Café Brasil - Bourbon Minas Gerais","u":4,"f":84925,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":4,"f":82000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG","u":3,"f":226800,"st":15,"cob":113},{"n":"Curso Barista inicial + Taller de despacho - Intensivo: 09, 10, 11, 12 y 13 de Febrero, 16:00hs","u":2,"f":620000,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG","u":2,"f":159000,"st":7,"cob":30},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg","u":2,"f":151000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg","u":2,"f":147225,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG","u":2,"f":143980,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Chiroso Landrace Doble fermentación","u":2,"f":56000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 12/01, 16:00hs","u":1,"f":110000,"st":null,"cob":null},{"n":"Taller - Calibración - 22/01, 10:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Filtrado - 29/01, 15:00 hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Taller - Filtrado - 10/02, 10:00hs","u":1,"f":96000,"st":null,"cob":null},{"n":"Coffee Hunters BOX - Tríptico de proceso. Monovarietales Colombia - Box (3 sobres de 100 grs. cada lote)","u":1,"f":45000,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir - 250g., Grano","u":1,"f":27500,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g., Media","u":1,"f":20500,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar en Mercado Pago","p":0.6818},{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.3182}],"cuotas":[{"n":"75500 cuotas","p":0.125},{"n":"75600 cuotas","p":0.0938},{"n":"76666 cuotas","p":0.0625},{"n":"46200 cuotas","p":0.0625},{"n":"49500 cuotas","p":0.0625},{"n":"110000 cuotas","p":0.0313},{"n":"64500 cuotas","p":0.0313},{"n":"27533 cuotas","p":0.0313},{"n":"148990 cuotas","p":0.0313},{"n":"57611 cuotas","p":0.0313},{"n":"71000 cuotas","p":0.0313},{"n":"79500 cuotas","p":0.0313},{"n":"18666 cuotas","p":0.0313},{"n":"302000 cuotas","p":0.0313},{"n":"29500 cuotas","p":0.0313},{"n":"42350 cuotas","p":0.0313},{"n":"45000 cuotas","p":0.0313},{"n":"25728 cuotas","p":0.0313},{"n":"71990 cuotas","p":0.0313},{"n":"230000 cuotas","p":0.0313},{"n":"56000 cuotas","p":0.0313},{"n":"406000 cuotas","p":0.0313},{"n":"92150 cuotas","p":0.0313},{"n":"23500 cuotas","p":0.0313}]},"2026-02":{"ppt":1.66,"un":98,"nue":29,"rec":30,"top":[{"n":"Café Saborizado Vainilla natural 1kg - 1kg","u":9,"f":675725,"st":null,"cob":null},{"n":"Café Brasil - Peaberry - 250g.","u":9,"f":193500,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha Rioblanco White Honey - 250g.","u":7,"f":196000,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":7,"f":143500,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG - 1kg","u":6,"f":477000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg","u":6,"f":453600,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha El Tambo - 250g., Grano","u":6,"f":168000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":6,"f":154200,"st":9,"cob":68},{"n":"Curso Barista Inicial - Intensivo: 24, 25, 26 y 27 de Febrero, 16:00hs","u":4,"f":920000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg, En granos","u":4,"f":302000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg","u":4,"f":298225,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Chiroso Landrace Doble fermentación - 250g.","u":4,"f":112000,"st":null,"cob":null},{"n":"Coffee Hunters BOX - Tríptico de proceso. Monovarietales Colombia - Box (3 sobres de 100 grs. cada lote)","u":3,"f":135000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Typica Colaborativa Natural - 250g.","u":3,"f":84000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Bourbon Ají - 250g., Grano","u":3,"f":84000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural - 250g.","u":3,"f":64500,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g., En granos","u":3,"f":61500,"st":null,"cob":null},{"n":"Curso Barista inicial + Taller de despacho - Intensivo: 09, 10, 11, 12 y 13 de Febrero, 16:00hs","u":2,"f":620000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 14/02, 10:00hs","u":2,"f":220000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG - 1kg","u":2,"f":143980,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir - 250g., Grano","u":2,"f":55000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais - 250g.","u":2,"f":43000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Caturra Fermentación intermedia - 250g., Grano","u":1,"f":28000,"st":null,"cob":null}],"pagos":[{"n":"✅ Pagar en Mercado Pago","p":0.4915},{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.1864},{"n":"✅ Pagar con Mercado Pago en Penguin","p":0.1186},{"n":"Pagar en Mercado Pago en MP","p":0.1186},{"n":"Pagar con Mercado Pago en Penguin","p":0.0847}],"cuotas":[{"n":"79500 cuotas","p":0.0732},{"n":"56000 cuotas","p":0.0732},{"n":"75600 cuotas","p":0.0732},{"n":"110000 cuotas","p":0.0488},{"n":"45000 cuotas","p":0.0488},{"n":"76666 cuotas","p":0.0488},{"n":"71725 cuotas","p":0.0488},{"n":"155000 cuotas","p":0.0244},{"n":"122600 cuotas","p":0.0244},{"n":"97000 cuotas","p":0.0244},{"n":"74200 cuotas","p":0.0244},{"n":"49500 cuotas","p":0.0244},{"n":"29740 cuotas","p":0.0244},{"n":"46200 cuotas","p":0.0244},{"n":"48000 cuotas","p":0.0244},{"n":"28000 cuotas","p":0.0244},{"n":"159500 cuotas","p":0.0244},{"n":"103333 cuotas","p":0.0244},{"n":"47200 cuotas","p":0.0244},{"n":"75200 cuotas","p":0.0244},{"n":"37750 cuotas","p":0.0244},{"n":"302200 cuotas","p":0.0244},{"n":"157000 cuotas","p":0.0244},{"n":"23500 cuotas","p":0.0244},{"n":"75500 cuotas","p":0.0244},{"n":"153490 cuotas","p":0.0244},{"n":"10000 cuotas","p":0.0244},{"n":"49000 cuotas","p":0.0244},{"n":"302000 cuotas","p":0.0244},{"n":"31679 cuotas","p":0.0244},{"n":"18666 cuotas","p":0.0244}]},"2026-03":{"ppt":1.79,"un":125,"nue":35,"rec":35,"top":[{"n":"Café Saborizado Vainilla natural - 250g.","u":17,"f":365500,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg","u":13,"f":975240,"st":null,"cob":null},{"n":"Curso Barista Inicial","u":10,"f":2288500,"st":5,"cob":21},{"n":"Café Perú - Cajamarca - 250g.","u":9,"f":183475,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg, En granos","u":8,"f":604000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg - 1kg, En granos","u":8,"f":600225,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha El Tambo - 250g.","u":8,"f":224000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Bourbon Ají - 250g.","u":5,"f":140000,"st":null,"cob":null},{"n":"Café Colombia - Santander - 250g., En granos","u":5,"f":128500,"st":null,"cob":null},{"n":"Café Colombia- Antioquia - 250g.","u":5,"f":127215,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":5,"f":127215,"st":9,"cob":68},{"n":"Café Brasil - Bourbon Minas Gerais - 250g., En granos","u":5,"f":107500,"st":null,"cob":null},{"n":"Café Bolivia – Finca El Porvenir 1KG - 1kg","u":4,"f":358000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg, En granos","u":3,"f":226500,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG - 1kg","u":3,"f":215970,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Caturra Fermentación intermedia - 250g., Grano","u":3,"f":84000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry - 250g.","u":3,"f":64500,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g., En granos","u":3,"f":61500,"st":null,"cob":null},{"n":"Taller - Arte Latte - 27 y 28 de Abril, 16:00hs","u":2,"f":330000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Typica Colaborativa Natural - 250g., Grano","u":2,"f":56000,"st":null,"cob":null},{"n":"Té en hebras Verde Sencha - 50g.","u":2,"f":20700,"st":null,"cob":null},{"n":"Taller - Calibración de espresso - 29 y 30 de Abril, 10:00hs","u":1,"f":145000,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG - 1kg, En granos","u":1,"f":79500,"st":null,"cob":null}],"pagos":[{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.4429},{"n":"Pagar en Mercado Pago en MP","p":0.4143},{"n":"Pagar con Mercado Pago en Penguin","p":0.1429}],"cuotas":[{"n":"76666 cuotas","p":0.1212},{"n":"75500 cuotas","p":0.1212},{"n":"56000 cuotas","p":0.0909},{"n":"45000 cuotas","p":0.0606},{"n":"75600 cuotas","p":0.0606},{"n":"22500 cuotas","p":0.0606},{"n":"71990 cuotas","p":0.0303},{"n":"25166 cuotas","p":0.0303},{"n":"130566 cuotas","p":0.0303},{"n":"103200 cuotas","p":0.0303},{"n":"48500 cuotas","p":0.0303},{"n":"79400 cuotas","p":0.0303},{"n":"153000 cuotas","p":0.0303},{"n":"51400 cuotas","p":0.0303},{"n":"172000 cuotas","p":0.0303},{"n":"89500 cuotas","p":0.0303},{"n":"46400 cuotas","p":0.0303},{"n":"18666 cuotas","p":0.0303},{"n":"165000 cuotas","p":0.0303},{"n":"96100 cuotas","p":0.0303},{"n":"230000 cuotas","p":0.0303},{"n":"48830 cuotas","p":0.0303}]},"2026-04":{"ppt":1.76,"un":125,"nue":39,"rec":32,"top":[{"n":"Café Saborizado Vainilla natural - 250g.","u":21,"f":465350,"st":null,"cob":null},{"n":"Curso Barista Inicial","u":12,"f":2760000,"st":5,"cob":21},{"n":"Café Brasil - Peaberry - 250g.","u":11,"f":244350,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":10,"f":219000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg - 1kg","u":9,"f":718000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas","u":7,"f":188900,"st":9,"cob":68},{"n":"Café Brasil - Bourbon Minas Gerais - 250g.","u":7,"f":156500,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g.","u":7,"f":147000,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG - 1kg","u":6,"f":499000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg","u":6,"f":466605,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha El Tambo - 250g.","u":5,"f":145000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia - 250g.","u":5,"f":137500,"st":null,"cob":null},{"n":"Café Colombia - Santander - 250g.","u":5,"f":132525,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Caturra Fermentación intermedia - 250g., Grano","u":4,"f":116000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Bourbon Ají - 250g., Grano","u":4,"f":116000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 27 y 28 de Abril, 16:00hs","u":2,"f":330000,"st":null,"cob":null},{"n":"Taller - Filtrado - 14 y 15 de Abril, 10:00hs","u":1,"f":145000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg, En granos","u":1,"f":81000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg, Fina","u":1,"f":79900,"st":null,"cob":null},{"n":"Té en hebras Blanco Song - 50g.","u":1,"f":10350,"st":null,"cob":null}],"pagos":[{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.5352},{"n":"Pagar en Mercado Pago en MP","p":0.3662},{"n":"Pagar con Mercado Pago en Penguin","p":0.0986}],"cuotas":[{"n":"76666 cuotas","p":0.069},{"n":"58000 cuotas","p":0.069},{"n":"85000 cuotas","p":0.069},{"n":"45000 cuotas","p":0.0345},{"n":"27398 cuotas","p":0.0345},{"n":"68700 cuotas","p":0.0345},{"n":"48090 cuotas","p":0.0345},{"n":"75500 cuotas","p":0.0345},{"n":"157000 cuotas","p":0.0345},{"n":"31668 cuotas","p":0.0345},{"n":"127400 cuotas","p":0.0345},{"n":"55000 cuotas","p":0.0345},{"n":"162000 cuotas","p":0.0345},{"n":"230000 cuotas","p":0.0345},{"n":"102900 cuotas","p":0.0345},{"n":"73500 cuotas","p":0.0345},{"n":"46000 cuotas","p":0.0345},{"n":"26519 cuotas","p":0.0345},{"n":"16966 cuotas","p":0.0345},{"n":"81000 cuotas","p":0.0345},{"n":"35489 cuotas","p":0.0345},{"n":"44900 cuotas","p":0.0345},{"n":"79900 cuotas","p":0.0345},{"n":"193500 cuotas","p":0.0345},{"n":"21000 cuotas","p":0.0345},{"n":"102030 cuotas","p":0.0345}]},"2026-05":{"ppt":1.66,"un":143,"nue":52,"rec":34,"top":[{"n":"Café Saborizado Vainilla natural - 250g.","u":16,"f":364550,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":14,"f":306600,"st":null,"cob":null},{"n":"Curso Barista Inicial","u":12,"f":2748500,"st":5,"cob":21},{"n":"Café Brasil - Bourbon Minas Gerais - 250g.","u":11,"f":253000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg - 1kg","u":10,"f":810000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":8,"f":719475,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha El Tambo - 250g.","u":8,"f":232000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry - 250g.","u":7,"f":158700,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g., En granos","u":7,"f":147000,"st":null,"cob":null},{"n":"Inscripción Competencia Regional Cup Tasters - CABA 2026","u":6,"f":900000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg","u":6,"f":481950,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg","u":6,"f":475405,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir - 250g.","u":6,"f":177000,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG - 1kg, En granos","u":5,"f":425000,"st":null,"cob":null},{"n":"Workshop - Practicas de Despacho - 15/05, 16:00hs","u":3,"f":330000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Caturra Fermentación intermedia - 250g., Grano","u":3,"f":87000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas - En granos, 250g.","u":3,"f":82500,"st":null,"cob":null},{"n":"Taller - Arte Latte","u":2,"f":330000,"st":null,"cob":null},{"n":"Inscripción Competencia Regional Latte Art - CABA 2026","u":2,"f":300000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg, En granos","u":2,"f":159800,"st":null,"cob":null},{"n":"Café Colombia- Antioquia - 250g., En granos","u":2,"f":55000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG - 1kg, Gruesa","u":1,"f":77000,"st":null,"cob":null},{"n":"Café Colombia - Santander - 250g., En granos","u":1,"f":27500,"st":null,"cob":null},{"n":"Té en hebras Frutos Rojos - 50g.","u":1,"f":10350,"st":null,"cob":null},{"n":"Té en hebras Blanco Song - 50g.","u":1,"f":10350,"st":null,"cob":null}],"pagos":[{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.5116},{"n":"Pagar en Mercado Pago en MP","p":0.407},{"n":"Pagar con Mercado Pago en Penguin","p":0.0814}],"cuotas":[{"n":"76666 cuotas","p":0.1471},{"n":"81000 cuotas","p":0.0882},{"n":"85000 cuotas","p":0.0588},{"n":"150000 cuotas","p":0.0588},{"n":"77000 cuotas","p":0.0294},{"n":"218500 cuotas","p":0.0294},{"n":"72400 cuotas","p":0.0294},{"n":"7666 cuotas","p":0.0294},{"n":"34966 cuotas","p":0.0294},{"n":"243000 cuotas","p":0.0294},{"n":"58000 cuotas","p":0.0294},{"n":"162000 cuotas","p":0.0294},{"n":"114400 cuotas","p":0.0294},{"n":"90500 cuotas","p":0.0294},{"n":"45400 cuotas","p":0.0294},{"n":"55250 cuotas","p":0.0294},{"n":"65550 cuotas","p":0.0294},{"n":"46900 cuotas","p":0.0294},{"n":"23900 cuotas","p":0.0294},{"n":"154855 cuotas","p":0.0294},{"n":"15333 cuotas","p":0.0294},{"n":"52000 cuotas","p":0.0294},{"n":"161800 cuotas","p":0.0294},{"n":"80900 cuotas","p":0.0294},{"n":"85975 cuotas","p":0.0294},{"n":"27000 cuotas","p":0.0294}]},"2026-06":{"ppt":1.45,"un":132,"nue":51,"rec":40,"top":[{"n":"Curso Barista Inicial","u":17,"f":3910000,"st":5,"cob":21},{"n":"Combo MUNDIALISTA 🇦🇷⭐","u":16,"f":1190910,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural - 250g.","u":12,"f":276000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg - 1kg","u":10,"f":810000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg","u":9,"f":729000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais - 250g.","u":9,"f":205850,"st":null,"cob":null},{"n":"Café Colombia - Santander - 250g.","u":7,"f":192500,"st":null,"cob":null},{"n":"Café Brasil - Peaberry - 250g.","u":7,"f":159850,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG - 1kg","u":6,"f":510000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia - 250g.","u":5,"f":134750,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":5,"f":108405,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g.","u":5,"f":105000,"st":null,"cob":null},{"n":"Inscripción Competencia Regional Latte Art - CABA 2026","u":4,"f":600000,"st":null,"cob":null},{"n":"Café Honduras Cantarranas - En granos, 250g.","u":4,"f":108625,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":3,"f":262450,"st":null,"cob":null},{"n":"Inscripción Competencia Regional Cup Tasters - CABA 2026","u":2,"f":300000,"st":null,"cob":null},{"n":"Taller - Calibración de espresso - 29 y 30 de Junio, 10:00hs","u":2,"f":290000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg","u":2,"f":159800,"st":null,"cob":null},{"n":"Gift Card Taller de Arte Latte","u":1,"f":165000,"st":null,"cob":null},{"n":"Café Colombia - Santander 1KG","u":1,"f":82500,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG - 1kg, Fina","u":1,"f":77000,"st":null,"cob":null},{"n":"Alfajor Moka Negro con Dulce de Leche x 18","u":1,"f":34000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha El Tambo - 250g., Grano","u":1,"f":25000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Caturra Fermentación intermedia - 250g., Grano","u":1,"f":23750,"st":null,"cob":null},{"n":"Té en hebras Verde Sencha - 50g.","u":1,"f":10350,"st":null,"cob":null}],"pagos":[{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.5385},{"n":"Pagar en Mercado Pago en MP","p":0.3516},{"n":"Pagar con Mercado Pago en Penguin","p":0.1099}],"cuotas":[{"n":"76666 cuotas","p":0.25},{"n":"81000 cuotas","p":0.1667},{"n":"150000 cuotas","p":0.0833},{"n":"172000 cuotas","p":0.0556},{"n":"74900 cuotas","p":0.0556},{"n":"55000 cuotas","p":0.0278},{"n":"50500 cuotas","p":0.0278},{"n":"36664 cuotas","p":0.0278},{"n":"69825 cuotas","p":0.0278},{"n":"162000 cuotas","p":0.0278},{"n":"79900 cuotas","p":0.0278},{"n":"23900 cuotas","p":0.0278},{"n":"97900 cuotas","p":0.0278},{"n":"230000 cuotas","p":0.0278},{"n":"46000 cuotas","p":0.0278},{"n":"24966 cuotas","p":0.0278},{"n":"164000 cuotas","p":0.0278},{"n":"243000 cuotas","p":0.0278},{"n":"44555 cuotas","p":0.0278}]},"2026-07":{"ppt":1.68,"un":121,"nue":39,"rec":33,"top":[{"n":"Curso Barista Inicial","u":16,"f":3680000,"st":5,"cob":21},{"n":"Café Saborizado Vainilla natural - 250g.","u":11,"f":250700,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":9,"f":197100,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg - 1kg, En granos","u":8,"f":648000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia - 250g.","u":8,"f":220000,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais - 250g.","u":8,"f":184000,"st":null,"cob":null},{"n":"Café Colombia - Santander - 250g., En granos","u":7,"f":192500,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Geisha El Tambo - 250g.","u":7,"f":175000,"st":null,"cob":null},{"n":"Café Honduras - Cantarranas 1KG - 1kg","u":5,"f":420750,"st":null,"cob":null},{"n":"Combo MUNDIALISTA 🇦🇷⭐","u":5,"f":370755,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Gesha Honey - 250g.","u":4,"f":116000,"st":null,"cob":null},{"n":"Workshop - Practicas de Despacho","u":3,"f":330000,"st":null,"cob":null},{"n":"Café Colombia - Santander 1KG","u":3,"f":271500,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg, En granos","u":3,"f":239700,"st":null,"cob":null},{"n":"Café Honduras Cantarranas - En granos, 250g.","u":3,"f":82500,"st":null,"cob":null},{"n":"Café Brasil - Peaberry - 250g.","u":3,"f":69000,"st":null,"cob":null},{"n":"Taller - Arte Latte - 28 y 29 de Julio, 10:00hs","u":2,"f":330000,"st":null,"cob":null},{"n":"Inscripción Competencia Regional Cup Tasters - CABA 2026","u":2,"f":300000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg, En granos","u":2,"f":162000,"st":null,"cob":null},{"n":"Coffee Hunters BOX - Tercera edición. Conexión al origen - Box (3 sobres de 100 grs. cada lote)","u":2,"f":90000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Caturra Fermentación intermedia - 250g.","u":2,"f":50000,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g.","u":2,"f":42000,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":1,"f":90500,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG - 1kg, En granos","u":1,"f":77000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg, En granos","u":1,"f":75905,"st":null,"cob":null}],"pagos":[{"n":"Pagar en Mercado Pago en MP","p":0.4583},{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.4306},{"n":"Pagar con Mercado Pago en Penguin","p":0.1111}],"cuotas":[{"n":"74900 cuotas","p":0.1176},{"n":"50500 cuotas","p":0.0882},{"n":"76666 cuotas","p":0.0882},{"n":"55000 cuotas","p":0.0588},{"n":"46000 cuotas","p":0.0588},{"n":"52500 cuotas","p":0.0588},{"n":"115000 cuotas","p":0.0294},{"n":"230000 cuotas","p":0.0294},{"n":"36158 cuotas","p":0.0294},{"n":"90500 cuotas","p":0.0294},{"n":"170400 cuotas","p":0.0294},{"n":"226666 cuotas","p":0.0294},{"n":"88600 cuotas","p":0.0294},{"n":"96900 cuotas","p":0.0294},{"n":"147060 cuotas","p":0.0294},{"n":"85000 cuotas","p":0.0294},{"n":"78000 cuotas","p":0.0294},{"n":"45000 cuotas","p":0.0294},{"n":"58000 cuotas","p":0.0294},{"n":"52000 cuotas","p":0.0294},{"n":"23900 cuotas","p":0.0294},{"n":"162000 cuotas","p":0.0294},{"n":"69000 cuotas","p":0.0294},{"n":"24166 cuotas","p":0.0294}]},"2026-08":{"ppt":1.49,"un":94,"nue":29,"rec":34,"top":[{"n":"Curso Barista Inicial","u":9,"f":2070000,"st":5,"cob":21},{"n":"Café Honduras - Cantarranas 1KG - 1kg","u":8,"f":680000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural 1kg - 1kg","u":8,"f":635850,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Gesha Honey - 250g.","u":8,"f":229100,"st":null,"cob":null},{"n":"Café Perú - Cajamarca - 250g.","u":7,"f":153300,"st":null,"cob":null},{"n":"Café Brasil - Bourbon Minas Gerais 1KG - 1kg","u":6,"f":447440,"st":null,"cob":null},{"n":"Café Colombia - Santander - 250g., En granos","u":6,"f":165000,"st":null,"cob":null},{"n":"Perú Chirinos Finca Cajamarca 1KG - 1kg","u":5,"f":400950,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Bourbon Rosado Lavado - 250g.","u":5,"f":143550,"st":null,"cob":null},{"n":"Taller - Arte Latte","u":4,"f":643500,"st":null,"cob":null},{"n":"Café Honduras Cantarranas - En granos, 250g.","u":4,"f":110000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry - 250g.","u":4,"f":92000,"st":null,"cob":null},{"n":"COMBO Coffee Hunters - 3 packs de 250grs + taza oficial 240ml - 250g.","u":2,"f":218000,"st":null,"cob":null},{"n":"Café Bolivia – Finca El Porvenir 1KG - 1kg, En granos","u":2,"f":187200,"st":null,"cob":null},{"n":"Café Colombia- Antioquia 1kg","u":2,"f":181000,"st":null,"cob":null},{"n":"Café Brasil - Peaberry 1KG - 1kg","u":2,"f":159800,"st":null,"cob":null},{"n":"Coffee Hunters BOX - Tercera edición. Conexión al origen - Box (3 sobres de 100 grs. cada lote)","u":2,"f":90000,"st":null,"cob":null},{"n":"Café Bolivia - Finca El Porvenir - 250g., Grano","u":2,"f":59000,"st":null,"cob":null},{"n":"Taller - Calibración de espresso - 27 y 28 de Agosto, 10:00hs","u":1,"f":145000,"st":null,"cob":null},{"n":"Workshop - Practicas de Despacho - 25 de Agosto, 10:00hs","u":1,"f":110000,"st":null,"cob":null},{"n":"Café Voltaic – Alto en Cafeína 1KG - 1kg, Media","u":1,"f":77000,"st":null,"cob":null},{"n":"COMBO Coffee Hunters BOX - Tercera edición + Taza oficial 80ml - Box (3 sobres de 100 grs. cada lote)","u":1,"f":65000,"st":null,"cob":null},{"n":"Coffee Hunters - Colombia Bourbon Rojo Natural - 250g., Grano","u":1,"f":29000,"st":null,"cob":null},{"n":"Café Saborizado Vainilla natural - 250g., En granos","u":1,"f":23000,"st":null,"cob":null},{"n":"Café Voltaic - Alto en Cafeína - 250g., Fina","u":1,"f":21000,"st":null,"cob":null}],"pagos":[{"n":"Pagar con Transferencia Bancaria | 10% de Descuento","p":0.5397},{"n":"Pagar en Mercado Pago en MP","p":0.3651},{"n":"Pagar con Mercado Pago en Penguin","p":0.0952}],"cuotas":[{"n":"85000 cuotas","p":0.1481},{"n":"79900 cuotas","p":0.1111},{"n":"81000 cuotas","p":0.0741},{"n":"76666 cuotas","p":0.0741},{"n":"172000 cuotas","p":0.037},{"n":"110000 cuotas","p":0.037},{"n":"230000 cuotas","p":0.037},{"n":"76950 cuotas","p":0.037},{"n":"82650 cuotas","p":0.037},{"n":"129840 cuotas","p":0.037},{"n":"58000 cuotas","p":0.037},{"n":"145000 cuotas","p":0.037},{"n":"76900 cuotas","p":0.037},{"n":"45800 cuotas","p":0.037},{"n":"109000 cuotas","p":0.037},{"n":"65000 cuotas","p":0.037},{"n":"23140 cuotas","p":0.037},{"n":"116000 cuotas","p":0.037},{"n":"26633 cuotas","p":0.037},{"n":"50653 cuotas","p":0.037}]}}},"stock":{"Penguincoffe":[{"n":"Coffee Hunters - Colombia Gesha Honey · 250g. / Gruesa","sku":"","st":0,"vel":0.13,"u30":4,"cob":0,"fr":116000},{"n":"Coffee Hunters - Colombia Gesha Honey · 250g. / Grano","sku":"","st":0,"vel":0.13,"u30":4,"cob":0,"fr":113100},{"n":"Curso Barista Inicial · Intensivo: 01, 02, 03 y 04 de Septiembre / 10:00hs","sku":"","st":2,"vel":0.13,"u30":4,"cob":15,"fr":920000},{"n":"Curso Barista Inicial · Semanal: Inicia Lunes 24/08 / 10:00hs","sku":"","st":3,"vel":0.1,"u30":3,"cob":30,"fr":690000},{"n":"Café Honduras - Cantarranas 1KG · 1kg / En granos","sku":"","st":7,"vel":0.23,"u30":7,"cob":30,"fr":595000},{"n":"Café Brasil - Bourbon Minas Gerais 1KG · 1kg / En granos","sku":"","st":7,"vel":0.2,"u30":6,"cob":35,"fr":463420},{"n":"Café Colombia - Santander · 250g. / En granos","sku":"","st":4,"vel":0.23,"u30":7,"cob":17.1,"fr":192500},{"n":"Coffee Hunters - Colombia Bourbon Rosado Lavado · 250g. / Grano","sku":"","st":7,"vel":0.13,"u30":4,"cob":52.5,"fr":114550}]},"clientes":["Penguincoffe"],"generado":"25/08 a las 10:16","soloCliente":"Penguincoffe"}</script>
+<script>
+const D = JSON.parse(document.getElementById('payload').textContent);
+const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+
+
+let sel = {c: 'BullPadel', a: 2026, m: 7};   
+
+ 
+const nf = new Intl.NumberFormat('es-AR');
+const money = v => v == null ? '—' : '$ ' + nf.format(Math.round(v));
+const moneyK = v => {
+  if (v == null) return '—';
+  const a = Math.abs(v);
+  if (a >= 1e9) return '$' + (v/1e9).toFixed(1).replace('.',',') + 'MM';
+  if (a >= 1e6) return '$' + (v/1e6).toFixed(1).replace('.',',') + 'M';
+  if (a >= 1e3) return '$' + Math.round(v/1e3) + 'k';
+  return '$' + Math.round(v);
+};
+const num = v => v == null ? '—' : nf.format(Math.round(v));
+const pct = (v, d=2) => v == null ? '—' : (v*100).toFixed(d).replace('.',',') + '%';
+const dec = (v, d=2) => v == null ? '—' : v.toFixed(d).replace('.',',');
+
+ 
+function tile(rotulo, valor, act, ant, anioPasado){
+  const linea = (etiq, contra) =>
+    (contra == null || act == null)
+      ? ''
+      : `<div class="d">${delta(act, contra)} <span style="color:var(--muted)">${etiq}</span></div>`;
+  const sinNada = (ant == null || act == null) && (anioPasado == null || act == null);
+  return `<div class="tile">
+    <div class="klabel">${rotulo}</div>
+    <div class="v">${valor}</div>
+    ${linea(tileEtiqPrev, ant)}
+    ${linea(tileEtiqYoy, anioPasado)}
+    ${sinNada ? '<div class="d flat">sin comparación</div>' : ''}
+  </div>`;
+}
+let tileEtiqPrev = 'vs mes anterior', tileEtiqYoy = 'vs año anterior';
+
+function delta(cur, prev, invert=false){
+  if (cur == null || prev == null || prev === 0) return '<span class="flat">sin comparación</span>';
+  const r = (cur - prev) / Math.abs(prev);
+  const cls = Math.abs(r) < 0.005 ? 'flat' : ((r > 0) !== invert ? 'up' : 'down');
+  const ar = Math.abs(r) < 0.005 ? '' : (r > 0 ? '↑ ' : '↓ ');
+  return `<span class="${cls}">${ar}${(Math.abs(r)*100).toFixed(1).replace('.',',')}%</span>`;
+}
+
+/* ---------- acceso a datos ---------- */
+const rows = c => D.real[c];
+const row = (c,a,m) => rows(c).find(r => r.a===a && r.m===m) || null;
+const yearRows = (c,a) => { const o=[]; for(let m=1;m<=12;m++) o.push(row(c,a,m)); return o; };
+const dm = (c,a,m) => D.demo[c]['' + a + '-' + String(m).padStart(2,'0')] || null;
+const years = c => [...new Set(rows(c).map(r=>r.a))].sort((x,y)=>y-x);
+
+/* ---------- tooltip ---------- */
+const tip = document.getElementById('tip');
+function showTip(e, html){
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY - r.height - 12;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y < 8) y = e.clientY + 18;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+const hideTip = () => tip.style.opacity = 0;
+
+/* ---------- gráfico: barras verticales por mes ---------- */
+function barsByMonth(id, data, opts){
+  const W=880, H=opts.h||190, L=58, R=14, T=14, B=26;
+  const iw = W-L-R, ih = H-T-B;
+  const vals = data.map(d=>d.v).filter(v=>v!=null);
+  if (!vals.length) return `<div class="empty">Sin datos para este año.</div>`;
+  const max = Math.max(...vals) * 1.1 || 1;
+  const bw = iw/12, pad = bw*0.22;
+  let g = '';
+  // grid
+  for (let i=0;i<=3;i++){
+    const y = T + ih - ih*i/3;
+    g += `<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text class="tick num" x="${L-8}" y="${y+4}" text-anchor="end">${opts.fmtAxis(max*i/3)}</text>`;
+  }
+  data.forEach((d,i)=>{
+    const x = L + bw*i + pad;
+    const w = bw - pad*2;
+    if (d.v == null){
+      g += `<text class="tick" x="${x+w/2}" y="${T+ih-6}" text-anchor="middle" opacity=".45">·</text>`;
+    } else {
+      const h = Math.max(3, ih * d.v/max);
+      const y = T + ih - h;
+      const on = (i+1) === sel.m;
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4"
+              fill="${opts.color}" opacity="${on?1:0.42}"/>`;
+      if (on) g += `<text class="dlabel" x="${x+w/2}" y="${y-6}" text-anchor="middle" font-weight="600">${opts.fmtLabel(d.v)}</text>`;
+    }
+    g += `<rect x="${L+bw*i}" y="${T}" width="${bw}" height="${ih}" fill="transparent"
+            data-i="${i}" class="hit"/>`;
+    g += `<text class="tick" x="${L+bw*i+bw/2}" y="${H-8}" text-anchor="middle"
+            ${ (i+1)===sel.m ? 'font-weight="600" fill="var(--ink)"':''}>${MES[i]}</text>`;
+  });
+  g += `<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="var(--axis)" stroke-width="1"/>`;
+  setTimeout(()=>attach(id, data, opts), 0);
+  return `<svg class="chart" id="${id}" viewBox="0 0 ${W} ${H}" role="img"
+            aria-label="${opts.aria}">${g}</svg>`;
+}
+
+/* ---------- gráfico: línea por mes ---------- */
+function lineByMonth(id, data, opts){
+  const W=880, H=opts.h||190, L=58, R=14, T=14, B=26;
+  const iw = W-L-R, ih = H-T-B;
+  const vals = data.map(d=>d.v).filter(v=>v!=null);
+  if (!vals.length) return `<div class="empty">Sin datos para este año.</div>`;
+  const max = Math.max(...vals)*1.15 || 1;
+  const bw = iw/12;
+  const px = i => L + bw*i + bw/2;
+  const py = v => T + ih - ih*v/max;
+  let g='';
+  for (let i=0;i<=3;i++){
+    const y = T + ih - ih*i/3;
+    g += `<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text class="tick num" x="${L-8}" y="${y+4}" text-anchor="end">${opts.fmtAxis(max*i/3)}</text>`;
+  }
+  // segmentos (solo entre puntos consecutivos con dato)
+  for (let i=0;i<11;i++){
+    if (data[i].v!=null && data[i+1].v!=null)
+      g += `<line x1="${px(i)}" y1="${py(data[i].v)}" x2="${px(i+1)}" y2="${py(data[i+1].v)}"
+              stroke="${opts.color}" stroke-width="2" stroke-linecap="round"/>`;
+  }
+  data.forEach((d,i)=>{
+    if (d.v!=null){
+      const on = (i+1)===sel.m;
+      g += `<circle cx="${px(i)}" cy="${py(d.v)}" r="${on?6:4.5}" fill="${opts.color}"
+              stroke="var(--surface)" stroke-width="2"/>`;
+      if (on) g += `<text class="dlabel" x="${px(i)}" y="${py(d.v)-13}" text-anchor="middle" font-weight="600">${opts.fmtLabel(d.v)}</text>`;
+    }
+    g += `<rect x="${L+bw*i}" y="${T}" width="${bw}" height="${ih}" fill="transparent" data-i="${i}" class="hit"/>`;
+    g += `<text class="tick" x="${px(i)}" y="${H-8}" text-anchor="middle"
+            ${ (i+1)===sel.m ? 'font-weight="600" fill="var(--ink)"':''}>${MES[i]}</text>`;
+  });
+  g += `<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="var(--axis)" stroke-width="1"/>`;
+  setTimeout(()=>attach(id, data, opts), 0);
+  return `<svg class="chart" id="${id}" viewBox="0 0 ${W} ${H}" role="img"
+            aria-label="${opts.aria}">${g}</svg>`;
+}
+
+/* ---------- gráfico: barras apiladas por mes ---------- */
+function stackByMonth(id, data, opts){
+  const W=880, H=opts.h||190, L=58, R=14, T=14, B=26;
+  const iw=W-L-R, ih=H-T-B;
+  const tot = data.map(d => d.a==null?null:(d.a+d.b));
+  const vals = tot.filter(v=>v!=null);
+  if(!vals.length) return `<div class="empty">Sin datos para este año.</div>`;
+  const max = Math.max(...vals)*1.1||1;
+  const bw=iw/12, pad=bw*0.22;
+  let g='';
+  for(let i=0;i<=3;i++){
+    const y=T+ih-ih*i/3;
+    g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    g+=`<text class="tick num" x="${L-8}" y="${y+4}" text-anchor="end">${num(max*i/3)}</text>`;
+  }
+  data.forEach((d,i)=>{
+    const x=L+bw*i+pad, w=bw-pad*2;
+    if(d.a!=null){
+      const ha=ih*d.a/max, hb=ih*d.b/max;
+      const on=(i+1)===sel.m;
+      const op = on?1:0.45;
+      g+=`<rect x="${x}" y="${T+ih-ha}" width="${w}" height="${Math.max(2,ha)}" rx="4" fill="var(--s1)" opacity="${op}"/>`;
+      g+=`<rect x="${x}" y="${T+ih-ha-hb-2}" width="${w}" height="${Math.max(2,hb)}" rx="4" fill="var(--s2)" opacity="${op}"/>`;
+    }
+    g+=`<rect x="${L+bw*i}" y="${T}" width="${bw}" height="${ih}" fill="transparent" data-i="${i}" class="hit"/>`;
+    g+=`<text class="tick" x="${L+bw*i+bw/2}" y="${H-8}" text-anchor="middle"
+          ${(i+1)===sel.m?'font-weight="600" fill="var(--ink)"':''}>${MES[i]}</text>`;
+  });
+  g+=`<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="var(--axis)" stroke-width="1"/>`;
+  setTimeout(()=>attach(id,data,opts),0);
+  return `<svg class="chart" id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.aria}">${g}</svg>`;
+}
+
+function attach(id, data, opts){
+  const svg = document.getElementById(id);
+  if (!svg) return;
+  svg.querySelectorAll('.hit').forEach(h => {
+    h.style.cursor = 'pointer';
+    h.addEventListener('mousemove', e => {
+      const i = +h.dataset.i;
+      const html = opts.tip(data[i], i);
+      if (html) showTip(e, html); else hideTip();
+    });
+    h.addEventListener('mouseleave', hideTip);
+    h.addEventListener('click', () => { sel.m = +h.dataset.i + 1; render(); });
+  });
+}
+
+/* ---------- barras horizontales ---------- */
+function hbars(items, color, fmt){
+  const max = Math.max(...items.map(i=>i.v)) || 1;
+  return `<div class="hbars">` + items.map(i => `
+    <div>
+      <div class="nm">${i.n}</div>
+      <div class="hb">
+        <div class="track"><div class="fill" style="width:${(i.v/max*100).toFixed(1)}%;background:${color}"></div></div>
+        <div class="val">${fmt(i.v)}</div>
+      </div>
+    </div>`).join('') + `</div>`;
+}
+
+const ICON = {
+  crit:'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 14h14L8 1zm0 5v4M8 11.5v1"stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>',
+  ser:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v4M8 10.5v1" stroke-linecap="round"/></svg>',
+  warn:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v4M8 10.5v1" stroke-linecap="round"/></svg>',
+  good:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+function stockPill(cob){
+  if (cob < 10)  return `<span class="pill p-crit">${ICON.crit} Crítico</span>`;
+  if (cob < 21)  return `<span class="pill p-ser">${ICON.ser} Reponer ya</span>`;
+  if (cob < 45)  return `<span class="pill p-warn">${ICON.warn} Vigilar</span>`;
+  return `<span class="pill p-good">${ICON.good} OK</span>`;
+}
+
+/* ---------- agregados de año completo ---------- */
+function aggYear(c, a, soloMeses){
+  let rs = rows(c).filter(r => r.a === a);
+  if (soloMeses) rs = rs.filter(r => soloMeses.includes(r.m));
+  if (!rs.length) return null;
+  const sum = k => { const v = rs.map(r=>r[k]).filter(x=>x!=null); return v.length?v.reduce((x,y)=>x+y,0):null; };
+  const v = sum('v'), f = sum('f'), s = sum('s'), i = sum('i');
+  return {a, m:0, v, f, s, i,
+          t: (v&&f)?f/v:null,
+          tc:(v&&s)?v/s:null,
+          meses: rs.length};
+}
+function aggDemo(c, a, soloMeses){
+  let base = rows(c).filter(r=>r.a===a);
+  if (soloMeses) base = base.filter(r=>soloMeses.includes(r.m));
+  const rs = base.map(r=>dm(c,a,r.m)).filter(Boolean);
+  if (!rs.length) return null;
+  const un = rs.reduce((x,r)=>x+r.un,0);
+  const rec = rs.reduce((x,r)=>x+r.rec,0);
+  const nue = rs.reduce((x,r)=>x+r.nue,0);
+  const byName = {};
+  rs.forEach(r => r.top.forEach(p => {
+    byName[p.n] = byName[p.n] || {n:p.n,u:0,f:0};
+    byName[p.n].u += p.u; byName[p.n].f += p.f;
+  }));
+  const top = Object.values(byName).sort((x,y)=>y.f-x.f);
+  const avg = key => {
+    const m = {};
+    rs.forEach(r => r[key].forEach(p => m[p.n] = (m[p.n]||0) + p.p/rs.length));
+    return Object.entries(m).map(([n,p])=>({n,p})).sort((x,y)=>y.p-x.p);
+  };
+  return {ppt: un/(rec+nue), un, rec, nue, top, pagos: avg('pagos'), cuotas: avg('cuotas')};
+}
+
+ 
+function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
+  const {c, a, m} = sel;
+  aplicarMarca(c);
+  avisoDe(c);
+  const yr = yearRows(c, a);
+  const anual = m === 0;
+  
+  const mesesAct = rows(c).filter(r=>r.a===a).map(r=>r.m);
+  const parcial  = anual && mesesAct.length < 12;
+  const cur   = anual ? aggYear(c, a)   : row(c, a, m);
+  const prev  = anual ? aggYear(c, a-1, mesesAct) : (m > 1 ? row(c, a, m-1) : row(c, a-1, 12));
+  const yoy   = anual ? prev : row(c, a-1, m);
+  const dmo   = anual ? aggDemo(c, a)   : dm(c, a, m);
+  const dprev = anual ? aggDemo(c, a-1, mesesAct) : (prev ? dm(c, prev.a, prev.m) : null);
+  const dyoy  = anual ? dprev : dm(c, a-1, m);
+  const periodo = anual
+    ? (parcial ? `${a}, de ${MES[mesesAct[0]-1]} a ${MES[mesesAct[mesesAct.length-1]-1]}` : `${a}`)
+    : `${MESL[m-1]} ${a}`;
+  const periodoCorto = anual ? `${a}` : `${MESL[m-1]} ${a}`;
+  tileEtiqPrev = anual ? (parcial ? `vs ${a-1}` : `vs ${a-1}`) : 'vs mes anterior';
+  tileEtiqYoy  = anual ? '' : `vs ${MES[m-1]}-${String(a-1).slice(2)}`;
+  const etiqPrev = anual
+    ? (parcial ? `vs los mismos meses de ${a-1}` : `vs ${a-1}`)
+    : 'vs mes anterior';
+  const etiqYoy  = anual ? `vs ${a-1}` : `vs ${MES[m-1]}-${String(a-1).slice(2)}`;
+
+  
+  const mh = [`<button class="mchip all" data-m="0" aria-pressed="${anual}">Año completo</button>`]
+    .concat(MES.map((s,i)=>{
+      const has = !!yr[i];
+      return `<button class="mchip" data-m="${i+1}" ${has?'':'disabled'}
+        aria-pressed="${sel.m===i+1}">${s}</button>`;
+    })).join('');
+  document.getElementById('months').innerHTML = mh;
+  document.getElementById('months').querySelectorAll('.mchip').forEach(b=>{
+    b.onclick = () => { sel.m = +b.dataset.m; render(); };
+  });
+
+  let H = '';
+
+  if (!cur){
+    H = `<div class="card"><div class="empty">No hay datos cargados para ${periodo} en ${c}.</div></div>`;
+    document.getElementById('main').innerHTML = H;
+    renderTable();
+    return;
+  }
+
+  
+  const invFactPrev = (prev && prev.i && prev.f) ? prev.i/prev.f : null;
+  const invFactYoy  = (yoy  && yoy.i  && yoy.f ) ? yoy.i /yoy.f  : null;
+  const invFactCur  = (cur.i && cur.f) ? cur.i/cur.f : null;
+
+  H += `<div class="hero">
+    <div class="card">
+      <div>
+        <div class="klabel">Tasa de conversión — ${periodo}</div>
+        <div class="kbig accent">${pct(cur.tc)}</div>
+        <div class="sub">${num(cur.v)} ventas sobre ${num(cur.s)} sesiones</div>
+      </div>
+      <div class="deltas">
+        <span class="delta">${etiqPrev} ${delta(cur.tc, prev&&prev.tc)}</span>
+        ${anual?'':`<span class="delta">${etiqYoy} ${delta(cur.tc, yoy&&yoy.tc)}</span>`}
+      </div>
+    </div>
+    <div class="card">
+      <div>
+        <div class="klabel">Facturación — ${periodo}</div>
+        <div class="kbig">${money(cur.f)}</div>
+        <div class="sub">ticket promedio ${money(cur.t)}</div>
+      </div>
+      <div class="deltas">
+        <span class="delta">${etiqPrev} ${delta(cur.f, prev&&prev.f)}</span>
+        ${anual?'':`<span class="delta">${etiqYoy} ${delta(cur.f, yoy&&yoy.f)}</span>`}
+      </div>
+    </div>
+    <div class="card">
+      <div>
+        <div class="klabel">Inversión / facturación — ${periodo}</div>
+        <div class="kbig">${invFactCur==null?'—':pct(invFactCur,1)}</div>
+        <div class="sub">${invFactCur==null
+          ? 'sin inversión cargada'
+          : moneyK(cur.i)+' invertidos sobre '+moneyK(cur.f)+' · subir es peor'}</div>
+      </div>
+      <div class="deltas">
+        <span class="delta">${etiqPrev} ${delta(invFactCur, invFactPrev, true)}</span>
+        ${anual?'':`<span class="delta">${etiqYoy} ${delta(invFactCur, invFactYoy, true)}</span>`}
+      </div>
+    </div>
+  </div>`;
+
+  // ---- tiles ----
+  H += `<div class="tiles">
+    ${tile('Ventas',              num(cur.v),    cur.v,  prev&&prev.v,  anual?null:(yoy&&yoy.v))}
+    ${tile('Sesiones',            num(cur.s),    cur.s,  prev&&prev.s,  anual?null:(yoy&&yoy.s))}
+    ${tile('Ticket promedio',     moneyK(cur.t), cur.t,  prev&&prev.t,  anual?null:(yoy&&yoy.t))}
+    ${tile('Productos por ticket',dmo?dec(dmo.ppt):'—', dmo&&dmo.ppt, dprev&&dprev.ppt, anual?null:(dyoy&&dyoy.ppt))}
+    ${tile('Unidades vendidas',   dmo?num(dmo.un):'—',  dmo&&dmo.un,  dprev&&dprev.un,  anual?null:(dyoy&&dyoy.un))}
+    ${tile('Inversión publicitaria', moneyK(cur.i), cur.i, prev&&prev.i, anual?null:(yoy&&yoy.i))}
+  </div>`;
+
+  // ================= EL CRUCE: dos gráficos, un eje cada uno =================
+  H += `<div class="card">
+    <h2>Facturación y tasa de conversión, mes a mes — ${a}</h2>
+    <p class="note">Los dos gráficos comparten el eje de meses, así se leen alineados sin
+      mezclar dos escalas en el mismo dibujo. La barra y el punto resaltados son el mes elegido;
+      hacé clic en cualquier mes para cambiarlo.</p>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Facturación</span></div>
+    ${barsByMonth('c1', yr.map((r,i)=>({v:r?r.f:null, i})), {
+      color:'var(--s1)', fmtAxis:moneyK, fmtLabel:moneyK,
+      aria:'Facturación por mes',
+      tip:(d,i)=>{ const r=yr[i]; if(!r) return null;
+        return `<div class="tt">${MESL[i]} ${a}</div>
+        <div class="tr"><span>Facturación</span><b>${money(r.f)}</b></div>
+        <div class="tr"><span>Ventas</span><b>${num(r.v)}</b></div>
+        <div class="tr"><span>Ticket</span><b>${money(r.t)}</b></div>`; }
+    })}
+    <div class="legend" style="margin-top:18px"><span><i style="background:var(--s2)"></i>Tasa de conversión</span></div>
+    ${lineByMonth('c2', yr.map((r,i)=>({v:r?r.tc:null, i})), {
+      color:'var(--s2)', fmtAxis:v=>pct(v,1), fmtLabel:v=>pct(v,2),
+      aria:'Tasa de conversión por mes',
+      tip:(d,i)=>{ const r=yr[i]; if(!r) return null;
+        return `<div class="tt">${MESL[i]} ${a}</div>
+        <div class="tr"><span>Tasa de conv.</span><b>${pct(r.tc)}</b></div>
+        <div class="tr"><span>Sesiones</span><b>${num(r.s)}</b></div>
+        <div class="tr"><span>Ventas</span><b>${num(r.v)}</b></div>`; }
+    })}
+  </div>`;
+
+  // ================= TOP PRODUCTOS =================
+  if (dmo){
+    H += `<div class="card">
+        <h2>Los más vendidos — ${periodoCorto}</h2>
+        <p class="note">Por unidades vendidas — la misma lista que en Tiendanube aparece
+        en <b>Estadísticas → Detalle por producto</b>. La columna de stock es la de
+        <b>este momento</b>, así se ve de un vistazo cuál de los que más vende está en riesgo.</p>
+        <div class="scroll"><table>
+          <thead><tr><th>Producto</th><th>Vendidas</th><th>Facturación</th>
+            <th>Stock hoy</th><th>Cobertura</th><th style="text-align:left">Estado</th></tr></thead>
+          <tbody>${dmo.top.slice(0,10).map(p=>`<tr>
+            <td>${p.n}</td><td>${num(p.u)}</td><td>${moneyK(p.f)}</td>
+            <td>${p.st==null?'—':num(p.st)}</td>
+            <td>${p.cob==null?'—':(num(p.cob)+' días')}</td>
+            <td style="text-align:left">${p.cob==null?'<span style="color:var(--muted)">sin dato</span>':stockPill(p.cob)}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </div>
+
+      <div class="two"><div class="card">
+        <h2>Medios de pago</h2>
+        <p class="note">Participación sobre el total de órdenes de ${periodoCorto}.</p>
+        ${hbars(dmo.pagos.map(p=>({n:p.n, v:p.p})), 'var(--s3)', v=>pct(v,1))}
+        <h2 style="margin-top:22px">Cuotas</h2>
+        <p class="note">Cómo se financian las compras.</p>
+        ${hbars(dmo.cuotas.map(p=>({n:p.n, v:p.p})), 'var(--s2)', v=>pct(v,1))}
+      </div><div></div></div>`;
+
+    // ============ nuevos vs recurrentes ============
+    const st = yr.map((r,i)=>{
+      const dd = r ? dm(c, a, i+1) : null;
+      return dd ? {a:dd.nue, b:dd.rec} : {a:null, b:null};
+    });
+    const shr = dmo.rec/(dmo.rec+dmo.nue);
+    H += `<div class="card">
+      <h2>Clientes nuevos y recurrentes</h2>
+      <p class="note">En ${periodoCorto}, <b>${pct(shr,1)}</b> de las órdenes fueron de clientes
+        que ya habían comprado antes (${num(dmo.rec)} de ${num(dmo.rec+dmo.nue)}).</p>
+      <div class="legend">
+        <span><i style="background:var(--s1)"></i>Nuevos</span>
+        <span><i style="background:var(--s2)"></i>Recurrentes</span>
+      </div>
+      ${stackByMonth('c3', st, {aria:'Órdenes de clientes nuevos y recurrentes por mes',
+        tip:(d,i)=> d.a==null?null:`<div class="tt">${MESL[i]} ${a}</div>
+          <div class="tr"><span>Nuevos</span><b>${num(d.a)}</b></div>
+          <div class="tr"><span>Recurrentes</span><b>${num(d.b)}</b></div>
+          <div class="tr"><span>Recompra</span><b>${pct(d.b/(d.a+d.b),1)}</b></div>`})}
+    </div>`;
+  }
+
+  // ============ Academia vs Productos ============
+  // Aparece SOLO para los clientes que tienen el corte cargado (hoy, Penguin).
+  // Si el payload no trae acad, este bloque no existe y el reporte queda igual
+  // que siempre para los otros seis.
+  //
+  // COMO SE REPARTE, para que cierre con el resto del tablero:
+  //   Facturacion: el total del pedido (con envio y descuentos) se reparte entre
+  //     los dos rubros segun cuanto pesa cada uno en el carrito. Academia mas
+  //     Productos da exactamente la facturacion del mes.
+  //   Ventas: un pedido es UNO. Si el carrito mezcla, se lo lleva entero el rubro
+  //     que mas pesa. Academia mas Productos da exactamente las ventas del mes.
+  if (cur && cur.acad) {
+    const facMes = yr.map(r => (r && r.acad) ? {a:r.acad.f, b:r.prod.f} : {a:null, b:null});
+    const venMes = yr.map(r => (r && r.acad) ? {a:r.acad.v, b:r.prod.v} : {a:null, b:null});
+    const shaF = cur.f ? cur.acad.f / cur.f : 0;
+    const shaV = cur.v ? cur.acad.v / cur.v : 0;
+
+    H += `<div class="card">
+      <h2>Academia y Productos — ${periodoCorto}</h2>
+      <p class="note">Dos negocios distintos dentro de la misma tienda: los cursos y
+        talleres de la Academia por un lado, el café y el equipamiento por el otro.
+        En ${periodoCorto} la Academia explicó <b>${pct(shaF,1)}</b> de la facturación
+        (${moneyK(cur.acad.f)}) con <b>${num(cur.acad.v)}</b> de ${num(cur.v)} ventas,
+        o sea <b>${pct(shaV,1)}</b> de las órdenes.</p>
+      <div class="legend">
+        <span><i style="background:var(--s1)"></i>Academia</span>
+        <span><i style="background:var(--s2)"></i>Productos</span>
+      </div>
+      <h2 style="margin-top:6px">Facturación por rubro</h2>
+      ${stackByMonth('c4', facMes, {aria:'Facturación de Academia y Productos por mes',
+        tip:(d,i)=> d.a==null?null:`<div class="tt">${MESL[i]} ${a}</div>
+          <div class="tr"><span>Academia</span><b>${moneyK(d.a)}</b></div>
+          <div class="tr"><span>Productos</span><b>${moneyK(d.b)}</b></div>
+          <div class="tr"><span>Peso Academia</span><b>${pct(d.a/(d.a+d.b),1)}</b></div>`})}
+      <h2 style="margin-top:22px">Ventas por rubro</h2>
+      <p class="note">Cada pedido cuenta una sola vez, del lado que más pesa en el carrito.</p>
+      ${stackByMonth('c5', venMes, {aria:'Ventas de Academia y Productos por mes',
+        tip:(d,i)=> d.a==null?null:`<div class="tt">${MESL[i]} ${a}</div>
+          <div class="tr"><span>Academia</span><b>${num(d.a)}</b></div>
+          <div class="tr"><span>Productos</span><b>${num(d.b)}</b></div>`})}
+    </div>`;
+  }
+
+  // La tarjeta de stock se quitó a pedido de Santiago: la información útil (stock y
+  // cobertura de lo que más se vende) ya está en la tabla de "Los más vendidos", y así
+  // todo lo que se ve en el reporte se refresca con la misma cadencia.
+
+  document.getElementById('main').innerHTML = H;
+  renderTable();
+}
+
+// Se abre en el último mes CERRADO, no en el que está corriendo. El mes en curso
+// siempre está a medias: agosto con 3 ventas contra julio con 129 da -97%, que asusta
+// y no dice nada. El mes actual sigue estando a un clic.
+const HOY = new Date();
+function anyMonth(c,a){
+  const r = rows(c).filter(x=>x.a===a);
+  if (!r.length) return 1;
+  const esActual = m => a === HOY.getFullYear() && m === HOY.getMonth()+1;
+  for (let i=r.length-1; i>=0; i--)
+    if (!esActual(r[i].m) && r[i].tc != null) return r[i].m;
+  for (let i=r.length-1; i>=0; i--) if (!esActual(r[i].m)) return r[i].m;
+  return r[r.length-1].m;
+}
+
+function renderTable(){ if (sel.c === 'Comparar marcas') { var _t = document.getElementById('tbl'); if (_t) _t.innerHTML = ''; return; }
+  const {c,a} = sel;
+  const yr = yearRows(c,a);
+  document.getElementById('tbl').innerHTML = `<table>
+    <thead><tr><th>Mes</th><th>Ventas</th><th>Facturación</th><th>Ticket prom.</th>
+      <th>Sesiones</th><th>Tasa conv.</th><th>Inversión</th>
+      <th>Prod./ticket</th></tr></thead>
+    <tbody>${yr.map((r,i)=>{
+      const dd = r ? dm(c,a,i+1) : null;
+      return `<tr><td>${MESL[i]}</td>
+        <td>${r?num(r.v):'—'}</td><td>${r?money(r.f):'—'}</td>
+        <td>${r?money(r.t):'—'}</td><td>${r?num(r.s):'—'}</td>
+        <td>${r?pct(r.tc):'—'}</td><td>${r?money(r.i):'—'}</td>
+        <td>${dd?dec(dd.ppt):'—'}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+
+/* ---------- marcas ---------- */
+const LOGO_BULLPADEL = "";
+const LOGO_LUBOLOQUE = "";
+const LOGO_BENETI    = "data:image/webp;base64,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";
+const LOGO_ATUACARA = "";
+const LOGO_TRINY = "";
+const LOGO_PENGUIN = "data:image/webp;base64,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";
+
+const MARCAS = {
+  'Comparar marcas': {nombre:'Comparar marcas', mono:'VS', fondo:'#111827', s1:'#2a78d6', s1d:'#3987e5', s2:'#eb6834', s2d:'#d95926'},
+  'BullPadel': {nombre:'Bullpadel', logo:LOGO_BULLPADEL, mono:'BP', fondo:'#ffffff',
+                s1:'#a81824', s1d:'#c22f3d', s2:'#2a78d6', s2d:'#3987e5'},
+  // Luboloque y Beneti son logotipos en negro, sin color de marca. No invento uno:
+  // el logo va tal cual y el acento sale de la paleta validada, distinto para cada uno
+  // para que se distingan de un vistazo al cambiar de cliente.
+  'Luboloque': {nombre:'Luboloque', logo:LOGO_LUBOLOQUE, mono:'LB', fondo:'#ffffff',
+                s1:'#2a78d6', s1d:'#3987e5', s2:'#eb6834', s2d:'#d95926'},
+  'Beneti':    {nombre:'Giorgio Beneti', logo:LOGO_BENETI, mono:'GB', fondo:'#e4e5e1',
+                s1:'#4a3aa7', s1d:'#9085e9', s2:'#eb6834', s2d:'#d95926'},
+  'A tua cara':{nombre:'A Tua Cara', logo:LOGO_ATUACARA, mono:'AT', fondo:'#000000', alto:true,
+                s1:'#1baf7a', s1d:'#199e70', s2:'#eb6834', s2d:'#d95926'},
+  // Triny todavia no tiene logo cargado: va con el monograma y un acento propio
+  'Triny':     {nombre:'Triny', logo:LOGO_TRINY, mono:'TR', fondo:'#ffffff',
+                s1:'#eb6834', s1d:'#d95926', s2:'#2a78d6', s2d:'#3987e5'},
+  // Penguin Coffee: WooCommerce, no Tiendanube. El logo viene sobre su propio
+  // fondo rojo casi negro, por eso alto:true igual que A tua cara.
+  'Penguincoffe': { nombre: 'Penguin Coffee', logo: LOGO_PENGUIN, mono: 'PC',
+                    fondo: '#1c0605', alto: true,
+                    s1: '#dc0a2d', s1d: '#f0405f', s2: '#2a78d6', s2d: '#3987e5' }
+};
+
+// Con que plataforma trabaja cada cliente. Se muestra debajo del nombre en el
+// encabezado. Todos son Tiendanube salvo los que aparecen aca, asi que sumar un
+// cliente nuevo de Tiendanube no pide tocar nada.
+const PLATAFORMAS = { 'Penguincoffe': 'WordPress · WooCommerce' };
+Object.keys(MARCAS).forEach(function (k) {
+  MARCAS[k].plataforma = PLATAFORMAS[k] || 'Tiendanube';
+});
+function esOscuro(){ return document.documentElement.getAttribute('data-theme') === 'dark'; }
+function avisoDe(c){
+  const meses = Object.keys(D.demo[c] || {}).sort();
+  const el = document.getElementById('aviso');
+  if (!meses.length){
+    el.style.display = '';
+    el.innerHTML = '<b>Este cliente todavía no tiene el detalle cargado.</b> Ventas, ' +
+      'facturación, sesiones e inversión son reales, pero productos por ticket, top ' +
+      'productos, medios de pago y stock empiezan a juntarse desde que se conecte la tienda.';
+    return;
+  }
+  const desde = meses[0], hasta = meses[meses.length - 1];
+  el.style.display = (meses.length >= 7) ? 'none' : '';
+  el.innerHTML = '<b>Detalle disponible de ' + desde + ' a ' + hasta + '.</b> ' +
+    'Antes de esa fecha hay ventas y facturación, pero no productos por ticket ' +
+    'ni top productos: el detalle se junta desde que se conectó la tienda.';
+}
+
+// Antes, un cliente sin ficha caía en la de Luboloque y mostraba SU logo. Ahora se le
+// arma una neutra con las iniciales, hasta que le carguemos el logo de verdad.
+function marcaGenerica(c){
+  const ini = String(c).split(/\s+/).filter(Boolean).slice(0,2)
+                .map(function(p){ return p[0].toUpperCase(); }).join('');
+  return {nombre:c, logo:'', mono: ini || '?', fondo:'#ffffff',
+          s1:'#1baf7a', s1d:'#199e70', s2:'#eb6834', s2d:'#d95926'};
+}
+
+function aplicarMarca(c){
+  const M = MARCAS[c] || marcaGenerica(c);
+  const d = esOscuro();
+  const r = document.documentElement.style;
+  r.setProperty('--acc', d ? M.s1d : M.s1);
+  r.setProperty('--s1',  d ? M.s1d : M.s1);
+  r.setProperty('--s2',  d ? M.s2d : M.s2);
+  document.getElementById('brand').innerHTML = `
+    <div class="brand">
+      ${M.logo
+        ? `<div class="logo${M.alto?' alto':''}" style="background:${M.fondo||'#fff'}"><img src="${M.logo}" alt="${M.nombre}"></div>`
+        : `<div class="mono">${M.mono}</div>`}
+      <div>
+        <div class="bname">${M.nombre}</div>
+        <div class="bsub">Tablero de KPIs de ecommerce${M.plataforma ? ' · ' + M.plataforma : ''}</div>
+      </div>
+      <div class="spacer"></div>
+      ${M.logo ? '' : '<div class="nologo">Sin logo cargado — pasame el archivo y queda con la identidad de la marca.</div>'}
+    </div>`;
+}
+
+ 
+const fc = document.getElementById('fc'), fa = document.getElementById('fa');
+if (!D.clientes.includes(sel.c)) sel.c = D.clientes[0];
+fc.innerHTML = D.clientes.map(c=>`<option ${c===sel.c?'selected':''}>${c}</option>`).join('');
+function fillYears(){
+  const ys = years(sel.c);
+  if (!ys.includes(sel.a)) sel.a = ys[0];
+  fa.innerHTML = ys.map(y=>`<option ${y===sel.a?'selected':''}>${y}</option>`).join('');
+}
+fc.onchange = () => { sel.c = fc.value; fillYears(); sel.m = anyMonth(sel.c, sel.a); render(); };
+fa.onchange = () => { sel.a = +fa.value; sel.m = anyMonth(sel.c, sel.a); render(); };
+
+const tb = document.getElementById('theme');
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  tb.textContent = t === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  render();
+}
+tb.onclick = () => applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+applyTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+if (D.generado) document.getElementById('sub').textContent =
+  'Pochoclo Media · datos al ' + D.generado;
+
+fillYears();
+render();
+
+
+
+var CMP_KEY = 'Comparar marcas';
+
+function cmpMiles(n){
+  n = Math.round(Number(n) || 0);
+  var neg = n < 0; n = Math.abs(n);
+  var s = String(n), out = '';
+  while (s.length > 3) { out = '.' + s.slice(-3) + out; s = s.slice(0, -3); }
+  return (neg ? '-' : '') + s + out;
+}
+function cmpMoney(n){ return '$ ' + cmpMiles(n); }
+function cmpNum(n){ return cmpMiles(n); }
+function cmpPct(n, dec){
+  var d = (dec === undefined) ? 1 : dec;
+  return (Number(n) || 0).toFixed(d).replace('.', ',') + '%';
+}
+function cmpOscuro(){ try { return esOscuro(); } catch (e) { return false; } }
+function cmpColor(c){
+  var M = (typeof MARCAS !== 'undefined' && MARCAS[c]) ? MARCAS[c] : null;
+  var osc = cmpOscuro();
+  if (!M) return osc ? '#8aa0b8' : '#5b6b7d';
+  return osc ? (M.s1d || M.s1) : (M.s1 || M.s1d);
+}
+function cmpNombre(c){
+  var M = (typeof MARCAS !== 'undefined' && MARCAS[c]) ? MARCAS[c] : null;
+  return (M && M.nombre) ? M.nombre : c;
+}
+function cmpMarcas(){
+  return (D.clientes || []).filter(function (c) { return c !== CMP_KEY; });
+}
+function cmpFilas(a, m){
+  return cmpMarcas().map(function (c) {
+    var ms = (D.real[c] || []).filter(function (o) {
+      return Number(o.a) === Number(a) && (!m || Number(o.m) === Number(m));
+    });
+    var v = 0, f = 0, s = 0, i = 0;
+    ms.forEach(function (o) {
+      v += Number(o.v) || 0; f += Number(o.f) || 0;
+      s += Number(o.s) || 0; i += Number(o.i) || 0;
+    });
+    return { c: c, v: v, f: f, s: s, i: i,
+             t: v ? f / v : 0,
+             tc: s ? (v / s) * 100 : 0,
+             invf: f ? (i / f) * 100 : 0 };
+  }).filter(function (r) { return r.v || r.f || r.s || r.i; })
+    .sort(function (x, y) { return y.f - x.f; });
+}
+function cmpCaja(){
+  return 'border:1px solid rgba(127,127,127,.28);border-radius:12px;padding:14px 16px;margin:0 0 14px';
+}
+function cmpBarra(valor, maximo, color){
+  var w = maximo > 0 ? Math.max(2, Math.round((valor / maximo) * 100)) : 0;
+  return '<div style="height:100%;border-radius:4px;background:' + color + ';width:' + w + '%"></div>';
+}
+function cmpPanel(filas, campo, rotulo, fmt, ayuda){
+  var vals = filas.map(function (r) { return Number(r[campo]) || 0; });
+  var max = Math.max.apply(null, vals.concat([0]));
+  var h = '<div style="' + cmpCaja() + '">';
+  h += '<div style="font-weight:600">' + rotulo + '</div>';
+  h += '<div style="opacity:.6;font-size:12px;margin-bottom:10px">' + (ayuda || '&nbsp;') + '</div>';
+  filas.forEach(function (r) {
+    h += '<div style="display:grid;grid-template-columns:120px 1fr 110px;gap:10px;align-items:center;margin:8px 0">';
+    h += '<div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + cmpNombre(r.c) + '</div>';
+    h += '<div style="height:8px;border-radius:4px;background:rgba(127,127,127,.14)">' + cmpBarra(Number(r[campo]) || 0, max, cmpColor(r.c)) + '</div>';
+    h += '<div style="text-align:right;font-size:13px;font-variant-numeric:tabular-nums">' + fmt(r[campo]) + '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+function cmpCelda(txt, fuerte){
+  return '<td style="text-align:right;padding:7px 8px;font-variant-numeric:tabular-nums' +
+         (fuerte ? ';font-weight:600' : '') + '">' + txt + '</td>';
+}
+function cmpRender(){
+  var cont = document.getElementById('main');
+  var tb = document.getElementById('tbl');
+  var av = document.getElementById('aviso');
+  var sb = document.getElementById('sub');
+  if (tb) tb.innerHTML = '';
+  if (av) av.innerHTML = '';
+  var a = sel.a, m = sel.m;
+  var periodo = m ? (MESL[m - 1] + ' de ' + a) : ('Ano ' + a + ' completo');
+  if (sb) sb.textContent = 'Todas las marcas · ' + periodo;
+  if (!cont) return;
+  var filas = cmpFilas(a, m);
+  if (!filas.length) {
+    cont.innerHTML = '<div style="' + cmpCaja() + '">No hay datos cargados para ' + periodo + '.</div>';
+    return;
+  }
+  var tot = { v: 0, f: 0, s: 0, i: 0 };
+  filas.forEach(function (r) { tot.v += r.v; tot.f += r.f; tot.s += r.s; tot.i += r.i; });
+  tot.t = tot.v ? tot.f / tot.v : 0;
+  tot.tc = tot.s ? (tot.v / tot.s) * 100 : 0;
+  tot.invf = tot.f ? (tot.i / tot.f) * 100 : 0;
+
+  var enc = ['Marca','Ventas','Facturacion','% del total','Ticket','Sesiones','Conversion','Inversion','Inv./Fact.'];
+  var h = '<div style="' + cmpCaja() + ';overflow-x:auto">';
+  h += '<div style="font-weight:600;margin-bottom:10px">Todas las marcas · ' + periodo + '</div>';
+  h += '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>';
+  enc.forEach(function (t, i) {
+    h += '<th style="padding:6px 8px;font-weight:600;opacity:.7;text-align:' + (i ? 'right' : 'left') + '">' + t + '</th>';
+  });
+  h += '</tr></thead><tbody>';
+  filas.forEach(function (r) {
+    h += '<tr style="border-top:1px solid rgba(127,127,127,.22)">';
+    h += '<td style="padding:7px 8px;white-space:nowrap"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' +
+         cmpColor(r.c) + ';margin-right:7px"></span>' + cmpNombre(r.c) + '</td>';
+    h += cmpCelda(cmpNum(r.v));
+    h += cmpCelda(cmpMoney(r.f));
+    h += cmpCelda(cmpPct(tot.f ? (r.f / tot.f) * 100 : 0));
+    h += cmpCelda(cmpMoney(r.t));
+    h += cmpCelda(r.s ? cmpNum(r.s) : '—');
+    h += cmpCelda(r.s ? cmpPct(r.tc, 2) : '—');
+    h += cmpCelda(r.i ? cmpMoney(r.i) : '—');
+    h += cmpCelda((r.i && r.f) ? cmpPct(r.invf) : '—');
+    h += '</tr>';
+  });
+  h += '<tr style="border-top:2px solid rgba(127,127,127,.45)">';
+  h += '<td style="padding:7px 8px;font-weight:600">Total</td>';
+  h += cmpCelda(cmpNum(tot.v), 1);
+  h += cmpCelda(cmpMoney(tot.f), 1);
+  h += cmpCelda('100,0%', 1);
+  h += cmpCelda(cmpMoney(tot.t), 1);
+  h += cmpCelda(tot.s ? cmpNum(tot.s) : '—', 1);
+  h += cmpCelda(tot.s ? cmpPct(tot.tc, 2) : '—', 1);
+  h += cmpCelda(tot.i ? cmpMoney(tot.i) : '—', 1);
+  h += cmpCelda((tot.i && tot.f) ? cmpPct(tot.invf) : '—', 1);
+  h += '</tr></tbody></table>';
+  h += '<div style="opacity:.6;font-size:12px;margin-top:10px">Un guion quiere decir que esa marca todavia no tiene ese dato cargado. ' +
+       'El ticket y la conversion se recalculan sobre todo el periodo: no son el promedio de los meses.</div>';
+  h += '</div>';
+
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px">';
+  h += cmpPanel(filas, 'f', 'Facturacion', cmpMoney, 'Ordenado de mayor a menor');
+  h += cmpPanel(filas, 'v', 'Ventas', cmpNum, 'Ordenes pagadas');
+  h += cmpPanel(filas, 't', 'Ticket promedio', cmpMoney, 'Facturacion sobre ventas');
+  h += cmpPanel(filas, 's', 'Sesiones', cmpNum, 'De Google Analytics');
+  h += cmpPanel(filas, 'tc', 'Tasa de conversion', function (x) { return cmpPct(x, 2); }, 'Ventas sobre sesiones');
+  h += cmpPanel(filas, 'i', 'Inversion en Meta', cmpMoney, 'Lo gastado en publicidad');
+  h += cmpPanel(filas, 'invf', 'Inversion sobre facturacion', cmpPct, 'Cuanto mas bajo, mejor');
+  h += '</div>';
+  cont.innerHTML = h;
+}
+(function cmpInit(){
+  try {
+    if (typeof D === 'undefined' || !D.real || !D.clientes) return;
+    
+    if (D.soloCliente) {
+      var fcu = document.getElementById('fc');
+      if (fcu) fcu.disabled = true;
+      return;
+    }
+    var acc = {};
+    cmpMarcas().forEach(function (c) {
+      (D.real[c] || []).forEach(function (o) {
+        var k = o.a + '-' + o.m;
+        if (!acc[k]) acc[k] = { a: Number(o.a), m: Number(o.m), v: 0, f: 0, s: 0, i: 0, top: [], pagos: [], cuotas: [], nue: 0, rec: 0, u: 0, ppt: 0 };
+        acc[k].v += Number(o.v) || 0; acc[k].f += Number(o.f) || 0;
+        acc[k].s += Number(o.s) || 0; acc[k].i += Number(o.i) || 0;
+        acc[k].nue += Number(o.nue) || 0; acc[k].rec += Number(o.rec) || 0;
+        acc[k].u += Number(o.u) || 0;
+      });
+    });
+    var arr = Object.keys(acc).map(function (k) {
+      var o = acc[k];
+      o.t = o.v ? o.f / o.v : 0;
+      o.tc = o.s ? (o.v / o.s) * 100 : 0;
+      o.ppt = o.v ? o.u / o.v : 0;
+      return o;
+    }).sort(function (x, y) { return (x.a - y.a) || (x.m - y.m); });
+    D.real[CMP_KEY] = arr;
+    if (D.stock && !D.stock[CMP_KEY]) D.stock[CMP_KEY] = [];
+    if (D.clientes.indexOf(CMP_KEY) === -1) D.clientes.push(CMP_KEY);
+    var fc = document.getElementById('fc');
+    if (fc) {
+      var ya = false;
+      for (var i = 0; i < fc.options.length; i++) { if (fc.options[i].value === CMP_KEY) ya = true; }
+      if (!ya) {
+        var op = document.createElement('option');
+        op.value = CMP_KEY;
+        op.textContent = CMP_KEY;
+        fc.appendChild(op);
+      }
+    }
+  } catch (e) { }
+})();
+ 
+
+
+
+
+(function botonLinks(){
+  try {
+    if (typeof D === 'undefined' || D.soloCliente || !D.links) return;
+    
+    
+    
+    var tema = document.getElementById('theme');
+    var cabecera = (tema && tema.parentNode) ? tema.parentNode : document.body;
+    if (!cabecera) return;
+
+    var oscuro = false;
+    try { oscuro = esOscuro(); } catch (e) { oscuro = false; }
+    var estiloBoton = 'cursor:pointer;font:inherit;font-size:13px;padding:7px 13px;border-radius:9px;' +
+      'border:1px solid rgba(127,127,127,.45);background:transparent;color:inherit';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'btnLinks';
+    btn.textContent = 'Links';
+    btn.style.cssText = estiloBoton + ';margin-right:8px';
+
+    
+    var fondo = document.createElement('div');
+    fondo.id = 'fondoLinks';
+    fondo.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);' +
+      'z-index:9999;align-items:center;justify-content:center;padding:24px';
+
+    var caja = document.createElement('div');
+    caja.style.cssText = 'max-width:720px;width:100%;max-height:80vh;overflow:auto;border-radius:16px;' +
+      'padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.35);' +
+      (oscuro ? 'background:#161a1f;color:#e8eaed' : 'background:#ffffff;color:#1f2933');
+
+    var cerrar = document.createElement('button');
+    cerrar.type = 'button';
+    cerrar.textContent = 'X';
+    cerrar.style.cssText = estiloBoton + ';float:right;padding:4px 10px';
+
+    var titulo = document.createElement('div');
+    titulo.textContent = 'Links de clientes';
+    titulo.style.cssText = 'font-weight:600;font-size:16px;margin-bottom:4px';
+
+    var bajada = document.createElement('div');
+    bajada.textContent = 'Compartí el link de cada cliente — solo verán sus propios datos.';
+    bajada.style.cssText = 'opacity:.65;font-size:13px;margin-bottom:16px';
+
+    caja.appendChild(cerrar);
+    caja.appendChild(titulo);
+    caja.appendChild(bajada);
+
+    Object.keys(D.links).sort().forEach(function (cli) {
+      var fila = document.createElement('div');
+      fila.style.cssText = 'display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;' +
+        'padding:8px 0;border-top:1px solid rgba(127,127,127,.22)';
+
+      var nombre = document.createElement('div');
+      nombre.textContent = cli;
+      nombre.style.cssText = 'font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+
+      var campo = document.createElement('input');
+      campo.type = 'text';
+      campo.readOnly = true;
+      campo.value = D.links[cli];
+      campo.title = D.links[cli];
+      campo.style.cssText = 'font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;width:100%;' +
+        'border:1px solid rgba(127,127,127,.4);background:rgba(127,127,127,.10);color:inherit';
+      campo.addEventListener('focus', function () { campo.select(); });
+
+      var copiar = document.createElement('button');
+      copiar.type = 'button';
+      copiar.textContent = 'Copiar';
+      copiar.style.cssText = estiloBoton;
+      copiar.addEventListener('click', function () {
+        campo.select();
+        var listo = false;
+        try { listo = document.execCommand('copy'); } catch (e) { listo = false; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try { navigator.clipboard.writeText(campo.value); listo = true; } catch (e) {}
+        }
+        copiar.textContent = listo ? 'Copiado' : 'Copialo a mano';
+        setTimeout(function () { copiar.textContent = 'Copiar'; }, 1800);
+      });
+
+      fila.appendChild(nombre);
+      fila.appendChild(campo);
+      fila.appendChild(copiar);
+      caja.appendChild(fila);
+    });
+
+    fondo.appendChild(caja);
+
+    function abrir() { fondo.style.display = 'flex'; }
+    function ocultar() { fondo.style.display = 'none'; }
+    btn.addEventListener('click', abrir);
+    cerrar.addEventListener('click', ocultar);
+    fondo.addEventListener('click', function (ev) { if (ev.target === fondo) ocultar(); });
+
+    function asegurarBoton() {
+      if (!btn.parentNode) {
+        if (tema && tema.parentNode) { tema.parentNode.insertBefore(btn, tema); }
+        else if (cabecera.appendChild) { cabecera.appendChild(btn); }
+      }
+    }
+    if (tema && tema.parentNode && tema.parentNode.insertBefore) {
+      tema.parentNode.insertBefore(btn, tema);
+    } else {
+      cabecera.appendChild(btn);
+    }
+    if (document.body && document.body.appendChild) document.body.appendChild(fondo);
+
+    
+    try {
+      var renderOriginal = render;
+      render = function () {
+        var r = renderOriginal.apply(null, arguments);
+        asegurarBoton();
+        return r;
+      };
+    } catch (e) { }
+  } catch (e) { }
+})();
+ 
+
+</script>
+</body>
+</html>
