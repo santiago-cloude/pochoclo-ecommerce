@@ -661,6 +661,18 @@ function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
         </table></div>
       </div>
 
+    ${(esTN && dmo.vis && dmo.vis.length) ? `
+    <div class="card">
+      <h2>Los más vistos — ${periodoCorto}</h2>
+      <p class="note">Por <b>vistas de producto</b>, medidas en GA4: Tiendanube no expone esta
+        métrica por API. Contesta otra pregunta que la tabla de arriba: qué miran, más allá de
+        qué compran. Los nombres los manda la tienda a GA4, así que pueden no coincidir letra
+        por letra con los de más vendidos.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Producto</th><th>Vistas</th></tr></thead>
+        <tbody>${dmo.vis.slice(0,10).map(p=>`<tr><td>${p.n}</td><td>${num(p.v)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>` : ''}
       <div class="two"><div class="card">
         <h2>Medios de pago</h2>
         <p class="note">Participación sobre el total de órdenes de ${periodoCorto}.</p>
