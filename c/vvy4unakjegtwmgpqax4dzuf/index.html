@@ -605,7 +605,7 @@ function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
   // ================= EL CRUCE: dos gráficos, un eje cada uno =================
   const esTN = !!(MARCAS[c] && MARCAS[c].plataforma === 'Tiendanube');
   H += `<div class="card">
-    <h2>Facturación${esTN ? ', cantidad de ventas' : ''} y tasa de conversión, mes a mes — ${a}</h2>
+    <h2>Facturación, cantidad de ventas y tasa de conversión, mes a mes — ${a}</h2>
     <p class="note">Los dos gráficos comparten el eje de meses, así se leen alineados sin
       mezclar dos escalas en el mismo dibujo. La barra y el punto resaltados son el mes elegido;
       hacé clic en cualquier mes para cambiarlo.</p>
@@ -629,7 +629,7 @@ function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
         <div class="tr"><span>Sesiones</span><b>${num(r.s)}</b></div>
         <div class="tr"><span>Ventas</span><b>${num(r.v)}</b></div>`; }
     })}
-    ${esTN ? `
+    <!-- el gráfico de ventas va en todas las marcas: sale de la columna C, no de GA4 -->
     <div class="legend" style="margin-top:18px"><span><i style="background:var(--s1)"></i>Cantidad de ventas</span></div>
     ${barsByMonth('c6', yr.map((r,i)=>({v:r?r.v:null, i})), {
       color:'var(--s1)', fmtAxis:num, fmtLabel:num,
@@ -639,7 +639,7 @@ function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
           <div class="tr"><span>Ventas</span><b>${num(r.v)}</b></div>
           <div class="tr"><span>Facturación</span><b>${money(r.f)}</b></div>
           <div class="tr"><span>Ticket</span><b>${money(r.t)}</b></div>`; }
-    })}` : ''}
+    })}
   </div>`;
 
   
