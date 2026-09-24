@@ -484,7 +484,13 @@ function aggDemo(c, a, soloMeses){
     rs.forEach(r => r[key].forEach(p => m[p.n] = (m[p.n]||0) + p.p/rs.length));
     return Object.entries(m).map(([n,p])=>({n,p})).sort((x,y)=>y.p-x.p);
   };
-  return {ppt: un/(rec+nue), un, rec, nue, top, pagos: avg('pagos'), cuotas: avg('cuotas')};
+  const visN = {};
+  rs.forEach(r => (r.vis || []).forEach(p => { visN[p.n] = (visN[p.n] || 0) + p.v; }));
+  const vis = Object.keys(visN).map(n => ({n: n, v: visN[n]})).sort((x,y)=>y.v-x.v);
+  let emb = null;
+  rs.forEach(r => { if (r.emb) { if (!emb) emb = {p:0, ca:0, ch:0};
+    emb.p += (r.emb.p || 0); emb.ca += (r.emb.ca || 0); emb.ch += (r.emb.ch || 0); } });
+  return {ppt: un/(rec+nue), un, rec, nue, top, pagos: avg('pagos'), cuotas: avg('cuotas'), vis, emb};
 }
 
  
