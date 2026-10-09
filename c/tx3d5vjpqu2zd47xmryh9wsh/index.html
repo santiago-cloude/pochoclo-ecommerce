@@ -197,7 +197,7 @@ summary{cursor:pointer;color:var(--ink2);font-size:13px;padding:6px 0}
 @media print{
   @page{size:A4 portrait;margin:12mm 10mm 14mm}
   html,body{background:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #tip,.filters,.months,details,header .ghost,.no-print{display:none !important}
+  #tip,.filters,.months,details,header .ghost,#btnLinks,dialog,.no-print{display:none !important}
   .wrap{max-width:none;padding:0;margin:0}
   .sticky{position:static !important}
   #printinfo{display:block;font-size:12px;color:#555;margin:0 0 14px}
@@ -971,7 +971,7 @@ if (btnPdf) btnPdf.onclick = () => {
   const nombre = sel.c;
   const per = sel.m === 0 ? String(sel.a) : MESL[sel.m-1] + ' ' + sel.a;
   const info = document.getElementById('printinfo');
-  if (info) info.textContent = nombre + ' \u00b7 ' + per + (D.generado ? ' \u00b7 datos al ' + D.generado : '');
+  if (info) info.textContent = nombre + ' \u00b7 ' + per;
   const volver = () => {
     window.removeEventListener('afterprint', volver);
     if (temaPrevio !== 'light') applyTheme(temaPrevio);
