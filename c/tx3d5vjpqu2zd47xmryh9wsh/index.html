@@ -192,6 +192,21 @@ details{margin-top:6px}
 summary{cursor:pointer;color:var(--ink2);font-size:13px;padding:6px 0}
 .scroll{overflow-x:auto}
 .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
+#printinfo{display:none}
+ 
+@media print{
+  @page{size:A4 portrait;margin:12mm 10mm 14mm}
+  html,body{background:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tip,.filters,.months,details,header .ghost,.no-print{display:none !important}
+  .wrap{max-width:none;padding:0;margin:0}
+  .sticky{position:static !important}
+  #printinfo{display:block;font-size:12px;color:#555;margin:0 0 14px}
+  .card{break-inside:avoid;page-break-inside:avoid;box-shadow:none !important;border:1px solid #d9d9d9 !important}
+  h2{break-after:avoid;page-break-after:avoid}
+  .scroll{overflow:visible !important}
+  table{font-size:11px}
+  a{text-decoration:none;color:inherit}
+}
 </style>
 </head>
 <body>
@@ -204,12 +219,14 @@ summary{cursor:pointer;color:var(--ink2);font-size:13px;padding:6px 0}
     <div class="sub" id="sub">Pochoclo Media</div>
   </div>
   <div class="spacer"></div>
+  <button class="ghost" id="pdf">Descargar PDF</button>
   <button class="ghost" id="theme">Modo oscuro</button>
 </header>
 
 <div class="banner" id="aviso"></div>
 
 <div id="brand" class="sticky"></div>
+<div id="printinfo"></div>
 
 <div class="filters">
   <div class="fld">
@@ -945,6 +962,23 @@ function applyTheme(t){
 }
 tb.onclick = () => applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
 applyTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+/* ---------- exportar a PDF la vista que se esta viendo ---------- */
+const btnPdf = document.getElementById('pdf');
+if (btnPdf) btnPdf.onclick = () => {
+  const temaPrevio = document.documentElement.getAttribute('data-theme');
+  if (temaPrevio !== 'light') applyTheme('light');
+  const nombre = sel.c;
+  const per = sel.m === 0 ? String(sel.a) : MESL[sel.m-1] + ' ' + sel.a;
+  const info = document.getElementById('printinfo');
+  if (info) info.textContent = nombre + ' \u00b7 ' + per + (D.generado ? ' \u00b7 datos al ' + D.generado : '');
+  const volver = () => {
+    window.removeEventListener('afterprint', volver);
+    if (temaPrevio !== 'light') applyTheme(temaPrevio);
+  };
+  window.addEventListener('afterprint', volver);
+  setTimeout(() => window.print(), 150);
+};
 
 if (D.generado) document.getElementById('sub').textContent =
   'Pochoclo Media · datos al ' + D.generado;
