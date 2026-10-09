@@ -511,7 +511,19 @@ function aggDemo(c, a, soloMeses){
 }
 
  
-function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
+ 
+function pintarMeses(c, a){
+  const cont = document.getElementById('months');
+  if (!cont) return;
+  const yrm = yearRows(c, a);
+  const mh = [`<button class="mchip all" data-m="0" aria-pressed="${sel.m === 0}">Año completo</button>`]
+    .concat(MES.map((s,i)=>`<button class="mchip" data-m="${i+1}" ${yrm[i]?'':'disabled'} aria-pressed="${sel.m === i+1}">${s}</button>`))
+    .join('');
+  cont.innerHTML = mh;
+  cont.querySelectorAll('.mchip').forEach(b=>{ b.onclick = () => { sel.m = +b.dataset.m; render(); }; });
+}
+function render(){ pintarMeses(sel.c, sel.a);
+  if (sel.c === 'Comparar marcas') { return cmpRender(); }
   const {c, a, m} = sel;
   aplicarMarca(c);
   avisoDe(c);
@@ -537,17 +549,6 @@ function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
     : 'vs mes anterior';
   const etiqYoy  = anual ? `vs ${a-1}` : `vs ${MES[m-1]}-${String(a-1).slice(2)}`;
 
-  
-  const mh = [`<button class="mchip all" data-m="0" aria-pressed="${anual}">Año completo</button>`]
-    .concat(MES.map((s,i)=>{
-      const has = !!yr[i];
-      return `<button class="mchip" data-m="${i+1}" ${has?'':'disabled'}
-        aria-pressed="${sel.m===i+1}">${s}</button>`;
-    })).join('');
-  document.getElementById('months').innerHTML = mh;
-  document.getElementById('months').querySelectorAll('.mchip').forEach(b=>{
-    b.onclick = () => { sel.m = +b.dataset.m; render(); };
-  });
 
   let H = '';
 
@@ -1074,7 +1075,7 @@ function cmpRender(){
   if (tb) tb.innerHTML = '';
   if (av) av.innerHTML = '';
   var a = sel.a, m = sel.m;
-  var periodo = m ? (MESL[m - 1] + ' de ' + a) : ('Ano ' + a + ' completo');
+  var periodo = m ? (MESL[m - 1] + ' de ' + a) : ('Año ' + a + ' completo');
   if (sb) sb.textContent = 'Todas las marcas · ' + periodo;
   if (!cont) return;
   var filas = cmpFilas(a, m);
@@ -1088,7 +1089,7 @@ function cmpRender(){
   tot.tc = tot.s ? (tot.v / tot.s) * 100 : 0;
   tot.invf = tot.f ? (tot.i / tot.f) * 100 : 0;
 
-  var enc = ['Marca','Ventas','Facturacion','% del total','Ticket','Sesiones','Conversion','Inversion','Inv./Fact.'];
+  var enc = ['Marca','Ventas','Facturación','% del total','Ticket','Sesiones','Conversión','Inversión','Inv./Fact.'];
   var h = '<div style="' + cmpCaja() + ';overflow-x:auto">';
   h += '<div style="font-weight:600;margin-bottom:10px">Todas las marcas · ' + periodo + '</div>';
   h += '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>';
