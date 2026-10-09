@@ -744,7 +744,7 @@ function render(){ if (sel.c === 'Comparar marcas') { return cmpRender(); }
         ${filas}
         <p class="note" style="margin-top:14px;margin-bottom:0">
           ${cierre == null ? '' : 'De cada 100 sesiones que inician el checkout, <b>' + Math.round(cierre*100) + '</b> terminan comprando. '}
-          ${cierreVio == null ? '' : 'Y de cada 100 que llegan a ver un producto, <b>' + Math.round(cierreVio*100) + '</b> compran. '}
+          ${cierreVio == null ? '' : 'Sobre los que llegan a ver un producto, compra el <b>' + pct(cierreVio,1) + '</b>. '}
           ${roto ? '<b style="color:var(--crit)">Ojo:</b> hay un escalón más grande que el anterior, lo cual es imposible. Esta tienda no está disparando bien los eventos del checkout en GA4; el dato de ventas sigue siendo correcto.' : ''}</p>
       </div>`;
     })() : '<div></div>'}</div>`;
