@@ -275,7 +275,7 @@ const pct = (v, d=2) => v == null ? '—' : (v*100).toFixed(d).replace('.',',') 
 const dec = (v, d=2) => v == null ? '—' : v.toFixed(d).replace('.',',');
 
  
-function tile(rotulo, valor, act, ant, anioPasado){
+function tile(rotulo, valor, act, ant, anioPasado, extra){
   const linea = (etiq, contra) =>
     (contra == null || act == null)
       ? ''
@@ -287,6 +287,7 @@ function tile(rotulo, valor, act, ant, anioPasado){
     ${linea(tileEtiqPrev, ant)}
     ${linea(tileEtiqYoy, anioPasado)}
     ${sinNada ? '<div class="d flat">sin comparación</div>' : ''}
+    ${extra || ''}
   </div>`;
 }
 let tileEtiqPrev = 'vs mes anterior', tileEtiqYoy = 'vs año anterior';
@@ -564,7 +565,15 @@ function render(){ pintarMeses(sel.c, sel.a);
   const invFactYoy  = (yoy  && yoy.i  && yoy.f ) ? yoy.i /yoy.f  : null;
   const invFactCur  = (cur.i && cur.f) ? cur.i/cur.f : null;
 
-  H += `<div class="hero">
+  
+
+
+
+const empOk = !anual && !!(cur && cur.emp);
+const empLinea = k => !empOk ? '' :
+  `<div class="emp" style="margin-top:6px;font-size:12px;color:var(--muted)">Venta empleados: <b>${k === 'v' ? num(cur.emp.v) : money(cur.emp.f)}</b> · ${tileEtiqPrev} ${delta(cur.emp[k], (prev && prev.emp) ? prev.emp[k] : null)}</div>`;
+
+H += `<div class="hero">
     <div class="card">
       <div>
         <div class="klabel">Tasa de conversión — ${periodo}</div>
@@ -581,6 +590,7 @@ function render(){ pintarMeses(sel.c, sel.a);
         <div class="klabel">Facturación — ${periodo}</div>
         <div class="kbig">${money(cur.f)}</div>
         <div class="sub">ticket promedio ${money(cur.t)}</div>
+      ${empLinea('f')}
       </div>
       <div class="deltas">
         <span class="delta">${etiqPrev} ${delta(cur.f, prev&&prev.f)}</span>
@@ -618,7 +628,7 @@ function render(){ pintarMeses(sel.c, sel.a);
 
   // ---- tiles ----
   H += `<div class="tiles">
-    ${tile('Ventas',              num(cur.v),    cur.v,  prev&&prev.v,  anual?null:(yoy&&yoy.v))}
+    ${tile('Ventas',              num(cur.v),    cur.v,  prev&&prev.v,  anual?null:(yoy&&yoy.v), empLinea('v'))}
     ${tile('Sesiones',            num(cur.s),    cur.s,  prev&&prev.s,  anual?null:(yoy&&yoy.s))}
     ${tile('Ticket promedio',     moneyK(cur.t), cur.t,  prev&&prev.t,  anual?null:(yoy&&yoy.t))}
     ${tile('Productos por ticket',dmo?dec(dmo.ppt):'—', dmo&&dmo.ppt, dprev&&dprev.ppt, anual?null:(dyoy&&dyoy.ppt))}
