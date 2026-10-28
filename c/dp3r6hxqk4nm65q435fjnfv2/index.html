@@ -249,7 +249,7 @@ summary{cursor:pointer;color:var(--ink2);font-size:13px;padding:6px 0}
 
 </div>
 
-<script id="payload" type="application/json">{"real":{"DONNE":[{"a":2026,"m":10,"v":null,"f":null,"t":null,"s":207,"i":5962750.88,"tc":0,"emp":{"v":2,"f":43650}}]},"demo":{"DONNE":{}},"stock":{"DONNE":[]},"clientes":["DONNE"],"generado":"28/10 a las 12:59","soloCliente":"DONNE"}</script>
+<script id="payload" type="application/json">{"real":{"DONNE":[{"a":2026,"m":10,"v":null,"f":null,"t":null,"s":209,"i":5962750.88,"tc":null}]},"demo":{"DONNE":{}},"stock":{"DONNE":[]},"clientes":["DONNE"],"generado":"28/10 a las 13:40","soloCliente":"DONNE"}</script>
 <script>
 const D = JSON.parse(document.getElementById('payload').textContent);
 const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -1010,12 +1010,13 @@ if (D.generado) document.getElementById('sub').textContent =
   'Pochoclo Media · datos al ' + D.generado;
 
 fillYears();
+// Si el mes por defecto no tiene datos para este cliente (ej. DONNE, que arranca en oct-26),
+
+if (sel.m && !yearRows(sel.c, sel.a)[sel.m-1]) sel.m = anyMonth(sel.c, sel.a);
 render();
 
-/* ================= COMPARADOR DE MARCAS =================
-   Pone todas las marcas una al lado de la otra en los KPIs del periodo
-   elegido. A proposito NO trae productos ni stock: para eso esta la vista
-   de cada cliente. Se engancha como un cliente mas del selector.       */
+
+
 var CMP_KEY = 'Comparar marcas';
 
 function cmpMiles(n){
