@@ -875,6 +875,7 @@ const LOGO_TRINY = "data:image/webp;base64,UklGRqwPAABXRUJQVlA4WAoAAAAQAAAAtwAAX
 const LOGO_PENGUIN = "";
 const LOGO_PLUMARI = "";
 const LOGO_G3 = "";
+const LOGO_DONNE = "";
 
 const MARCAS = {
   'Comparar marcas': {nombre:'Comparar marcas', mono:'VS', fondo:'#111827', s1:'#2a78d6', s1d:'#3987e5', s2:'#eb6834', s2d:'#d95926'},
@@ -905,13 +906,17 @@ const MARCAS = {
   
   
   'G3 Underwear': {nombre:'G3 Underwear', logo:LOGO_G3, mono:'G3', fondo:'#ffffff',
-                s1:'#2f3a8c', s1d:'#8a93e6', s2:'#eb6834', s2d:'#d95926'}
+                s1:'#2f3a8c', s1d:'#8a93e6', s2:'#eb6834', s2d:'#d95926'},
+  
+  
+  'DONNE':     {nombre:'Donné', logo:LOGO_DONNE, mono:'DN', fondo:'#ffffff',
+                s1:'#c03a8a', s1d:'#e86ab3', s2:'#2a78d6', s2d:'#3987e5'}
 };
 
 
 
 
-const PLATAFORMAS = { 'Penguincoffe': 'WordPress · WooCommerce' };
+const PLATAFORMAS = { 'Penguincoffe': 'WordPress · WooCommerce', 'DONNE': 'iPN' };
 Object.keys(MARCAS).forEach(function (k) {
   MARCAS[k].plataforma = PLATAFORMAS[k] || 'Tiendanube';
 });
