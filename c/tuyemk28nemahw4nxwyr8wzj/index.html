@@ -257,7 +257,25 @@ const MESL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto',
 
 
 
-let sel = {c: 'BullPadel', a: 2026, m: 7};   
+const HOY0 = new Date();
+
+let sel = {c: 'BullPadel', a: HOY0.getFullYear(), m: HOY0.getMonth() + 1};
+const VISTA_PEDIDA = (function () {
+  try {
+    var h = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+    var o = {};
+    if (h.get('c')) o.c = h.get('c');
+    if (h.get('a') && !isNaN(+h.get('a'))) o.a = +h.get('a');
+    if (h.get('m') !== null && !isNaN(+h.get('m'))) o.m = +h.get('m');
+    return o;
+  } catch (e) { return {}; }
+})();
+if (VISTA_PEDIDA.c) sel.c = VISTA_PEDIDA.c;
+if (VISTA_PEDIDA.a) sel.a = VISTA_PEDIDA.a;
+if (VISTA_PEDIDA.m != null) sel.m = VISTA_PEDIDA.m;
+function guardarVista(){
+  try { history.replaceState(null, '', '#c=' + encodeURIComponent(sel.c) + '&a=' + sel.a + '&m=' + sel.m); } catch (e) {}
+}   
 
  
 const nf = new Intl.NumberFormat('es-AR');
@@ -527,7 +545,7 @@ function pintarMeses(c, a){
   cont.innerHTML = mh;
   cont.querySelectorAll('.mchip').forEach(b=>{ b.onclick = () => { sel.m = +b.dataset.m; render(); }; });
 }
-function render(){ pintarMeses(sel.c, sel.a);
+function render(){ guardarVista(); pintarMeses(sel.c, sel.a);
   if (sel.c === 'Comparar marcas') { return cmpRender(); }
   const {c, a, m} = sel;
   aplicarMarca(c);
@@ -865,13 +883,12 @@ H += `<div class="hero">
 
 const HOY = new Date();
 function anyMonth(c,a){
+  
   const r = rows(c).filter(x=>x.a===a);
   if (!r.length) return 1;
-  const esActual = m => a === HOY.getFullYear() && m === HOY.getMonth()+1;
-  for (let i=r.length-1; i>=0; i--)
-    if (!esActual(r[i].m) && r[i].tc != null) return r[i].m;
-  for (let i=r.length-1; i>=0; i--) if (!esActual(r[i].m)) return r[i].m;
-  return r[r.length-1].m;
+  const mAct = HOY.getMonth()+1;
+  if (a === HOY.getFullYear() && r.some(x=>x.m===mAct)) return mAct;
+  return Math.max.apply(null, r.map(x=>x.m));
 }
 
 function renderTable(){ if (sel.c === 'Comparar marcas') { var _t = document.getElementById('tbl'); if (_t) _t.innerHTML = ''; return; }
@@ -1233,6 +1250,21 @@ function cmpRender(){
 
 
 
+
+(function restaurarComparador(){
+  
+  try {
+    if (VISTA_PEDIDA.c !== CMP_KEY || D.soloCliente || !D.real[CMP_KEY]) return;
+    sel.c = CMP_KEY;
+    var fcx = document.getElementById('fc');
+    if (fcx) fcx.value = CMP_KEY;
+    if (VISTA_PEDIDA.a) sel.a = VISTA_PEDIDA.a;
+    fillYears();
+    sel.m = (VISTA_PEDIDA.m != null) ? VISTA_PEDIDA.m : anyMonth(sel.c, sel.a);
+    if (sel.m && !yearRows(sel.c, sel.a)[sel.m-1]) sel.m = anyMonth(sel.c, sel.a);
+    render();
+  } catch (e) {}
+})();
 
 (function botonLinks(){
   try {
