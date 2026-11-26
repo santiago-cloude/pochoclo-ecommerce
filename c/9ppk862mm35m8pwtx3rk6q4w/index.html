@@ -681,8 +681,10 @@ H += `<div class="hero">
     ${tile('Unidades vendidas',   dmo?num(dmo.un):'—',  dmo&&dmo.un,  dprev&&dprev.un,  anual?null:(dyoy&&dyoy.un))}
     ${tile('Inversión publicitaria', moneyK(cur.i), cur.i, prev&&prev.i, anual?null:(yoy&&yoy.i))}
   </div>`;
+  // Lugar del bloque "Ventas por publicidad": debajo de los KPIs principales (lo completa mas abajo).
+  H += '<!--PAUTA-->';
 
-  // ================= EL CRUCE: dos gráficos, un eje cada uno =================
+  
   const esTN = !!(MARCAS[c] && MARCAS[c].plataforma === 'Tiendanube');
   H += `<div class="card">
     <h2>Facturación, cantidad de ventas y tasa de conversión, mes a mes — ${a}</h2>
@@ -911,16 +913,17 @@ H += `<div class="hero">
   
   
   {
+    let PH = '';
     const conP = yr.filter(r => r && r.pauta);
     if (conP.length) {
       const base = anual ? conP : ((cur && cur.pauta) ? [cur] : []);
       const sp = (k1, k2) => base.reduce((x, r) => x + ((r.pauta[k1] && r.pauta[k1][k2]) || 0), 0);
       if (!base.length) {
-        H += `<div class="card"><h2>Ventas por publicidad — ${periodoCorto}</h2>
+        PH += `<div class="card"><h2>Ventas por publicidad — ${periodoCorto}</h2>
           <p class="note">Sin medición confiable para este mes: el sitio todavía no registraba bien
           las compras que vienen de la pauta. Los meses con dato se ven en el año completo.</p></div>`;
       } else {
-        const mv = sp('gm','v'), mf = sp('gm','f'), gv = sp('gg','v'), gf = sp('gg','f');
+        const mv = sp('pm','v'), mf = sp('pm','f'), gv = Math.round(sp('pg','v')), gf = sp('pg','f');
         const tv = mv + gv, tf = mf + gf;
         const V = base.reduce((x, r) => x + (r.v || 0), 0), F = base.reduce((x, r) => x + (r.f || 0), 0);
         const fila = (n, v, f) => `<tr><td style="padding:6px 8px">${n}</td>
@@ -928,17 +931,16 @@ H += `<div class="hero">
           <td class="num" style="padding:6px 8px;text-align:right">${moneyK(f)}</td>
           <td class="num" style="padding:6px 8px;text-align:right">${V ? pct(v / V, 1) : '—'}</td>
           <td class="num" style="padding:6px 8px;text-align:right">${F ? pct(f / F, 1) : '—'}</td></tr>`;
-        const pmv = sp('pm','v'), pmf = sp('pm','f'), pgv = sp('pg','v'), pgf = sp('pg','f');
+        const amv = sp('gm','v'), amf = sp('gm','f'), agv = sp('gg','v'), agf = sp('gg','f');
         const ref = [];
-        if (pmv || pmf) ref.push(`Meta: ${num(pmv)} compras por ${moneyK(pmf)}`);
-        if (pgv || pgf) ref.push(`Google Ads: ${num(Math.round(pgv))} conversiones por ${moneyK(pgf)}`);
-        const facP = yr.map(r => (r && r.pauta) ? {a: r.pauta.gm.f, b: r.pauta.gg.f} : {a: null, b: null});
-        H += `<div class="card">
+        if (amv || amf || agv || agf) ref.push(`Meta ${num(amv)} ventas por ${moneyK(amf)}`, `Google ${num(agv)} ventas por ${moneyK(agf)}`);
+        const facP = yr.map(r => (r && r.pauta) ? {a: r.pauta.pm.f, b: r.pauta.pg.f} : {a: null, b: null});
+        PH += `<div class="card">
           <h2>Ventas por publicidad — ${periodoCorto}</h2>
           <p class="note">Cuánto de lo vendido vino de la pauta. En ${periodoCorto} la publicidad trajo
             <b>${num(tv)}</b> de ${num(V)} ventas (<b>${V ? pct(tv / V, 1) : '—'}</b>) y
             <b>${moneyK(tf)}</b> de facturación (<b>${F ? pct(tf / F, 1) : '—'}</b> del total).
-            Fuente: Google Analytics, que cuenta cada venta una sola vez.${anual ? ' En el año se suman solo los meses con medición.' : ''}</p>
+            Fuente: lo que reporta cada plataforma (Meta y Google Ads). Si una persona tocó anuncios de las dos, la venta puede figurar en ambas.${anual ? ' En el año se suman solo los meses con medición.' : ''}</p>
           <table style="width:100%;border-collapse:collapse;margin:8px 0 14px">
             <tr style="border-bottom:1px solid var(--grid)"><th style="text-align:left;padding:6px 8px">Canal</th>
               <th style="text-align:right;padding:6px 8px">Ventas</th><th style="text-align:right;padding:6px 8px">Facturación</th>
@@ -955,11 +957,12 @@ H += `<div class="hero">
             tip:(d,i)=> d.a==null?null:`<div class="tt">${MESL[i]} ${a}</div>
               <div class="tr"><span>Meta</span><b>${moneyK(d.a)}</b></div>
               <div class="tr"><span>Google</span><b>${moneyK(d.b)}</b></div>`})}
-          ${ref.length ? `<p class="note" style="margin-top:10px">Según cada plataforma (referencia): ${ref.join(' · ')}.
-            Cada una se adjudica ventas con criterios propios, por eso no coincide con Google Analytics.</p>` : ''}
+          ${ref.length ? `<p class="note" style="margin-top:10px">Según Google Analytics (referencia: último clic no directo, cada venta una sola vez): ${ref.join(' · ')}.
+            Meta y Google Ads cuentan además ventas de gente que vio o tocó el anuncio y volvió por otro lado, por eso dan más.</p>` : ''}
         </div>`;
       }
     }
+    H = H.replace('<!--PAUTA-->', () => PH);
   }
 
   
